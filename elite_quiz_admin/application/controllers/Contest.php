@@ -1,9 +1,5 @@
 <?php
 
-use Kreait\Firebase\Factory;
-use Kreait\Firebase\Messaging\CloudMessage;
-
-require FCPATH . 'vendor/autoload.php';
 
 defined('BASEPATH') or exit('No direct script access allowed');
 
@@ -265,12 +261,7 @@ class Contest extends CI_Controller
         );
 
         if ($fcm_id && $fcm_id != '' && $fcm_id != 'empty') {
-            $registrationID = explode(',', $fcm_id);
-            $factory = (new Factory)->withServiceAccount('assets/firebase_config.json');
-            $messaging = $factory->createMessaging();
-            $message = CloudMessage::new();
-            $message = $message->withNotification($fcmMsg)->withData($fcmMsg);
-            $messaging->sendMulticast($message, $registrationID);
+            log_message('info', "Badge notification skipped for user {$user_id} (app push disabled).");
         }
 
         $user_web_language = $res['web_language'];
@@ -291,12 +282,7 @@ class Contest extends CI_Controller
         );
 
         if ($web_fcm_id && $web_fcm_id != '' && $web_fcm_id != 'empty') {
-            $registrationID = explode(',', $web_fcm_id);
-            $factory = (new Factory)->withServiceAccount('assets/firebase_config.json');
-            $messaging = $factory->createMessaging();
-            $message = CloudMessage::new();
-            $message = $message->withNotification($web_fcmMsg)->withData($web_fcmMsg);
-            $messaging->sendMulticast($message, $registrationID);
+            log_message('info', "Badge notification skipped for user {$user_id} (web push disabled).");
         }
     }
 

@@ -4,11 +4,9 @@ import { useSelector } from "react-redux";
 import { websettingsData } from "@/store/reducers/webSettings";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import FirebaseData from "../../utils/Firebase";
 import { logout, updateUserDataInfo } from "@/store/reducers/userSlice";
 import { useRouter } from "next/router";
 import dynamic from "next/dynamic";
-import { signOut } from "firebase/auth";
 import { getUserCoinsApi } from "@/api/apiRoutes";
 const Sidebar = dynamic(() => import("../NavBar/Sidebar"), { ssr: false });
 const NavBar = dynamic(() => import("../NavBar/NavBar"), { ssr: false });
@@ -51,13 +49,10 @@ const Header = () => {
   // logo
   const logoimage = websettingsdata && websettingsdata.header_logo;
 
-  const { auth } = FirebaseData();
-
   const TOKEN_EXPIRED = "129";
 
   const handleLogout = async () => {
     logout();
-    await signOut(auth);
     await router.push("/auth/login");
   };
 

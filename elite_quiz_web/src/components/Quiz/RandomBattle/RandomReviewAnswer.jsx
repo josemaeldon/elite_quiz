@@ -40,7 +40,7 @@ function RandomReviewAnswer({ questions, goBack, reportquestions }) {
   }
 
   const setAnswerStatusClass = option => {
-    let decryptedAnswer = decryptAnswer(questions[currentQuestion].answer, userData?.data?.firebase_id)
+    let decryptedAnswer = decryptAnswer(questions[currentQuestion].answer, userData?.data?.id)
     if (decryptedAnswer === option) {
       return 'bg-success'
     } else if (questions[currentQuestion].selected_answer === option) {

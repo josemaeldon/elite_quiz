@@ -24,7 +24,6 @@ export const getUserStatisticsApi = "get_users_statistics";
 export const getUserCoinsApi = "get_user_coin_score";
 export const getUserBadgesApi = "get_user_badges";
 export const setUserCoinScoreApi = "set_user_coin_score";
-export const registerApi = "user_signup";
 export const updateUserProfileDataApi = "update_profile";
 export const updateUserProfileImageApi = "upload_profile_image";
 export const deleteUserAccountApi = "delete_user_account";

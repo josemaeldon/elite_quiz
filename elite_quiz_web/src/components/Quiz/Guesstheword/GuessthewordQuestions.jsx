@@ -93,7 +93,7 @@ const GuessthewordQuestions = ({
         // Decrypt the answer
         decryptedAnswer = decryptAnswer(
           questions[currentQuestion].answer,
-          userData?.data?.firebase_id
+          userData?.data?.id
         );
       } else {
         // Use the answer as is
@@ -434,7 +434,7 @@ const GuessthewordQuestions = ({
     let { id, answer } = questions[currentQuestion];
     let decryptedAnswer = decryptAnswer(
       answer,
-      userData?.data?.firebase_id
+      userData?.data?.id
     ).toUpperCase();
     let result_score = Score.current;
     if (decryptedAnswer === selected_option) {

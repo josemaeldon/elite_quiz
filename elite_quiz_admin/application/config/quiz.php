@@ -36,7 +36,6 @@ $config['system_modules'] = [
     'activity_tracker' => array('read'),
     'payment_requests' => array('create', 'read'),
     'system_utilities' => array('read', 'update'),
-    'firebase_configurations' => array('read', 'update'),
     'payment_settings' => array('create', 'read', 'update'),
     'ads_settings' => array('read', 'update'),
     'badges_settings' => array('read', 'update'),

@@ -184,67 +184,7 @@ export const getSystemLanguage = async () => {
   return "english";
 };
 
-// 1. check user exists
-export const checkUserExistsApi = async ({ firebase_id = "" }) => {
-  try {
-    const formData = new FormData();
-    formData.append("firebase_id", firebase_id);
-
-    const response = await api.post(apiEndPoints.checkUserExistsApi, formData);
-
-    if (response.status !== 200) {
-      throw new Error("Failed to fetch data");
-    }
-
-    return response?.data;
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    return null;
-  }
-};
-
-// 2. register
-export const registerApi = async ({
-  firebase_id = "",
-  type = "",
-  username = "",
-  email = "",
-  image_url = "",
-  mobile = "",
-  web_fcm_id = "",
-  friends_code = "",
-  web_language = "",
-}) => {
-  /**
-   * @param
-   * type : email / gmail / fb / mobile / apple
-   */
-
-  try {
-    const formData = new FormData();
-    formData.append("firebase_id", firebase_id);
-    formData.append("type", type);
-    if (username) formData.append("name", username);
-    if (email) formData.append("email", email);
-    if (image_url) formData.append("profile", image_url);
-    if (mobile) formData.append("mobile", mobile);
-    if (web_fcm_id) formData.append("web_fcm_id", web_fcm_id);
-    if (friends_code) formData.append("friends_code", friends_code);
-    if (web_language) formData.append("web_language", web_language);
-    const response = await api.post(apiEndPoints.registerApi, formData);
-
-    if (response.status !== 200) {
-      throw new Error("Failed to fetch data");
-    }
-
-    return response?.data;
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    return null;
-  }
-};
-
-// 3. delete user account
+// 1. delete user account
 export const deleteAccountApi = async () => {
   try {
     const response = await api.post(apiEndPoints.deleteUserAccountApi);

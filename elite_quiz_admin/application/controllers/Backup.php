@@ -9,7 +9,7 @@ class Backup extends CI_Controller
     private $backup_items = [
         'images',
         'upload',
-        'assets/firebase_config.json',
+        'assets/google_service_account.json',
         'application/language'
     ];
 

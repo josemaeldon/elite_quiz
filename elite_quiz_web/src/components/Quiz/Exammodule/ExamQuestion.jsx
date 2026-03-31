@@ -135,7 +135,7 @@ function ExamQuestion({ questions: data, timerSeconds, onOptionClick }) {
       const correctAnswers = markQuestions.filter((question) => {
         const decryptedAnswer = decryptAnswer(
           question.answer,
-          userData?.data?.firebase_id
+          userData?.data?.id
         );
         return question.selected_answer === decryptedAnswer;
       }).length;
@@ -163,7 +163,7 @@ function ExamQuestion({ questions: data, timerSeconds, onOptionClick }) {
       const correctAnswers = markQuestions.filter(
         (question) =>
           question.selected_answer ===
-          decryptAnswer(question.answer, userData?.data?.firebase_id)
+          decryptAnswer(question.answer, userData?.data?.id)
       )?.length;
       return {
         mark: mark,
@@ -280,7 +280,7 @@ function ExamQuestion({ questions: data, timerSeconds, onOptionClick }) {
       let selectedAnswer = data.selected_answer;
       let decryptedAnswer = decryptAnswer(
         data.answer,
-        userData?.data?.firebase_id
+        userData?.data?.id
       );
 
       if (decryptedAnswer == selectedAnswer) {

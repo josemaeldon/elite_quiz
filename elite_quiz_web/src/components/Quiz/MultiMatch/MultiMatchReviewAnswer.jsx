@@ -69,10 +69,10 @@ const MultiMatchReviewAnswer = ({ questions, goBack, reportquestions, showLevel,
         let isAnswerArray = Array.isArray(questions[currentQuestion].answer)
         if(isAnswerArray){
             questions[currentQuestion].answer?.map((data) => {
-                decryptedAnswers.push(decryptAnswer(data, userData?.data?.firebase_id))
+                decryptedAnswers.push(decryptAnswer(data, userData?.data?.id))
             })
         }else{
-            decryptedAnswers.push(decryptAnswer(questions[currentQuestion].answer, userData?.data?.firebase_id))
+            decryptedAnswers.push(decryptAnswer(questions[currentQuestion].answer, userData?.data?.id))
         }
         setDecryptedAnswers([...decryptedAnswers])
     }, [currentQuestion])
@@ -114,10 +114,10 @@ const MultiMatchReviewAnswer = ({ questions, goBack, reportquestions, showLevel,
         let isAnswerArray = Array.isArray(questions[currentQuestion].answer)
         if(isAnswerArray){
             questions[currentQuestion].answer?.map((data) => {
-                decryptedAnsArr.push(decryptAnswer(data, userData?.data?.firebase_id))
+                decryptedAnsArr.push(decryptAnswer(data, userData?.data?.id))
             })
         }else{
-            decryptedAnsArr.push(decryptAnswer(questions[currentQuestion].answer, userData?.data?.firebase_id))
+            decryptedAnsArr.push(decryptAnswer(questions[currentQuestion].answer, userData?.data?.id))
         }
 
         if (questions[currentQuestion]?.answer_type == "2") {
@@ -160,7 +160,7 @@ const MultiMatchReviewAnswer = ({ questions, goBack, reportquestions, showLevel,
 
     const rightWrongIcon = (option) => {
         let decryptedAnsArr = questions[currentQuestion].answer?.map((data) => {
-            return decryptAnswer(data, userData?.data?.firebase_id)
+            return decryptAnswer(data, userData?.data?.id)
         })
         if (questions[currentQuestion].isAnswered) {
             if (decryptedAnsArr.includes(option) && questions[currentQuestion]?.selected_answer?.includes(option)) {

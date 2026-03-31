@@ -66,10 +66,6 @@ class System_Update extends CI_Controller
                 if (!$this->session->userdata('authStatus')) {
                     redirect('/');
                 } else {
-                    $pathToServiceAccountJsonFile = 'assets/firebase_config.json';
-                    if (!file_exists($pathToServiceAccountJsonFile)) {
-                        redirect('firebase-configurations');
-                    }
                     if ($this->input->post('btnadd')) {
                         if (!has_permissions('update', 'system_update')) {
                             $this->session->set_flashdata('error', lang(PERMISSION_ERROR_MSG));

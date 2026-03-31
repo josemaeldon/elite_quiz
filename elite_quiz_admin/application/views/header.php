@@ -288,7 +288,7 @@
                     <a class="nav-link" href="<?= base_url() ?>system-languages"><em class="fas fa-language"></em> <span><?= lang('system_languages') ?></span></a>
                 </li>
             <?php } ?>
-            <?php if (has_permissions('read', 'in_app_settings') || has_permissions('read', 'coin_store_settings') || has_permissions('read', 'badges_settings') || has_permissions('read', 'ads_settings') || has_permissions('read', 'payment_settings') || has_permissions('read', 'firebase_configurations') || has_permissions('read', 'system_configuration') || has_permissions('read', 'system_utilities') || has_permissions('read', 'authentication_settings') || has_permissions('read', 'ai_settings')) { ?>
+<?php if (has_permissions('read', 'in_app_settings') || has_permissions('read', 'coin_store_settings') || has_permissions('read', 'badges_settings') || has_permissions('read', 'ads_settings') || has_permissions('read', 'payment_settings') || has_permissions('read', 'system_configuration') || has_permissions('read', 'system_utilities') || has_permissions('read', 'authentication_settings') || has_permissions('read', 'ai_settings')) { ?>
                 <li class="nav-item dropdown">
                     <a href="javascript:void(0)" class="nav-link has-dropdown"><em class="fas fa-cog"></em><span><?= lang('settings'); ?></span></a>
                     <ul class="dropdown-menu">
@@ -300,9 +300,6 @@
                         <?php } ?>
                         <?php if (has_permissions('read', 'authentication_settings')) { ?>
                             <li><a class="nav-link" href="<?= base_url(); ?>authentication-settings"><?= lang('authentication_settings'); ?></a></li>
-                        <?php } ?>
-                        <?php if (has_permissions('read', 'firebase_configurations')) { ?>
-                            <li><a class="nav-link" href="<?= base_url(); ?>firebase-configurations"><?= lang('firebase_configurations'); ?></a></li>
                         <?php } ?>
                         <?php if (has_permissions('read', 'payment_settings')) { ?>
                             <li><a class="nav-link" href="<?= base_url(); ?>payment-settings"><?= lang('payment_settings'); ?></a></li>

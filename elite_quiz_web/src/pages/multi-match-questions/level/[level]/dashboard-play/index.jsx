@@ -227,7 +227,7 @@ const ArrangeQuestion = () => {
     let selOpt = selectedOptions();
     let decryptedAnsArr = [];
     questions[currentQuestion].answer?.map((data) => {
-      decryptedAnsArr.push(decryptAnswer(data, userData?.data?.firebase_id));
+      decryptedAnsArr.push(decryptAnswer(data, userData?.data?.id));
     });
     setDecryptedAnswers([...decryptedAnsArr]);
     if (isSelectAns) {

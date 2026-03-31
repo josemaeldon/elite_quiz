@@ -18,7 +18,6 @@ import {
   setCurrentLanguage,
 } from "@/store/reducers/languageSlice";
 import { sysConfigdata } from "@/store/reducers/settingsSlice";
-import FirebaseData from "@/utils/Firebase";
 import menu_data from "./menu-data";
 import { useRouter } from "next/router";
 import {
@@ -36,7 +35,6 @@ import {
   notifiationTotal,
   notificationData,
 } from "@/store/reducers/notificationSlice";
-import { signOut } from "firebase/auth";
 import { t } from "@/utils";
 import { updateI18nTranslations } from "@/utils/language";
 import NotificationModal from "@/components/Notifications/NotificationModal";
@@ -53,7 +51,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 const MySwal = withReactContent(Swal);
 
 const MobileMenus = ({ setIsActive, mobileNav }) => {
-  const navigate = useRouter();
   const [navTitle, setNavTitle] = useState("");
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [notificationmodal, setNotificationModal] = useState(false);
@@ -72,8 +69,6 @@ const MobileMenus = ({ setIsActive, mobileNav }) => {
 
   const dispatch = useDispatch();
 
-  const { auth } = FirebaseData();
-  const router = useRouter();
   const userData = useSelector((state) => state.User);
   const languages = useSelector(selectLanguages);
 
@@ -97,11 +92,10 @@ const MobileMenus = ({ setIsActive, mobileNav }) => {
       },
       confirmButtonText: t("Logout"),
     }).then((result) => {
-      if (result.isConfirmed) {
-        logout();
-        signOut(auth);
-        navigate.push("/");
-      }
+        if (result.isConfirmed) {
+          logout();
+          router.push("/");
+        }
     });
   };
   // const onClickHandler = (e) => {

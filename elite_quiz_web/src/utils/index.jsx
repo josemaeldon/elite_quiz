@@ -228,7 +228,7 @@ export const audioPlay = (selected_option, currentQuestion_Answer) => {
   const userData = store && store.getState().User;
   const decryptedAnswer = decryptAnswer(
     currentQuestion_Answer,
-    userData?.data?.firebase_id
+    userData?.data?.id
   );
 
   if (systemconfig && systemconfig.answer_mode === "1") {
@@ -260,7 +260,7 @@ export const audioPlayGuessthework = (
   const userData = store && store.getState().User;
   const decryptedAnswer = decryptAnswer(
     currentQuestion_Answer,
-    userData?.data?.firebase_id
+    userData?.data?.id
   )
     .toUpperCase()
     .replaceAll(/\s/g, "");
@@ -296,7 +296,7 @@ export const showAnswerStatusClass = (
   // this is old logic
   // if (questions[currentQuestion].isAnswered) {
   //   if (systemconfig && systemconfig.answer_mode === '1') {
-  //     let decryptedAnswer = decryptAnswer(questions[currentQuestion].answer, userData?.data?.firebase_id)
+  //     let decryptedAnswer = decryptAnswer(questions[currentQuestion].answer, userData?.data?.id)
   //     if (decryptedAnswer === option) {
   //       return 'bg-success'
   //     } else if (questions[currentQuestion].selected_answer === option) {
@@ -315,7 +315,7 @@ export const showAnswerStatusClass = (
   const userData = store && store.getState().User;
   const decryptedAnswer = decryptAnswer(
     currentQuestion_Answer,
-    userData?.data?.firebase_id
+    userData?.data?.id
   );
 
   if (currentQuestion_is_Answered) {
@@ -488,34 +488,6 @@ export const RenderHtmlContent = ({ htmlContent }) => {
   }, [htmlContent]);
 
   return <div ref={containerRef} />;
-};
-
-const ERROR_CODES = {
-  "auth/user-not-found": t("user_not_found"),
-  "auth/wrong-password": t("invalid_password"),
-  "auth/email-already-in-use": t("email_already_in_use"),
-  "auth/invalid-email": t("invalid_email"),
-  "auth/user-disabled": t("user_disabled"),
-  "auth/too-many-requests": t("too_many_requests"),
-  "auth/operation-not-allowed": t("operation_not_allowed"),
-  "auth/internal-error": t("internal_error"),
-};
-
-// Error handling function
-export const handleFirebaseAuthError = (errorCode) => {
-  // Check if the error code exists in the global ERROR_CODES object
-  if (ERROR_CODES.hasOwnProperty(errorCode)) {
-    // If the error code exists, log the corresponding error message
-    toast.error(ERROR_CODES[errorCode]);
-    //   console.error(ERROR_CODES[errorCode]);
-  } else {
-    // If the error code is not found, log a generic error message
-    toast.error(`Unknown error occurred: ${errorCode}`);
-    //   console.error(`Unknown error occurred: ${errorCode}`);
-  }
-
-  // Optionally, you can add additional logic here to handle the error
-  // For example, display an error message to the user, redirect to an error page, etc.
 };
 
 // message list of battle

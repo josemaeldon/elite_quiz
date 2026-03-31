@@ -44,7 +44,7 @@ function GuessthewordReviewAnswer({ questions, goBack, t }) {
   }
 
   const setAnswerStatusClass = option => {
-    let decryptedAnswer = decryptAnswer(questions[currentQuestion].answer, userData?.data?.firebase_id)
+    let decryptedAnswer = decryptAnswer(questions[currentQuestion].answer, userData?.data?.id)
     if (decryptedAnswer === option) {
       return 'bg-success'
     } else if (questions[currentQuestion].selected_answer === option) {
@@ -53,7 +53,7 @@ function GuessthewordReviewAnswer({ questions, goBack, t }) {
   }
 
   // decrypt answer
-  let decryptedAnswer = decryptAnswer(questions[currentQuestion].answer, userData?.data?.firebase_id)
+  let decryptedAnswer = decryptAnswer(questions[currentQuestion].answer, userData?.data?.id)
 
   useEffect(() => {
     if(questions?.length <= 1){

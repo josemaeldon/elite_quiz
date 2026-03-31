@@ -62,27 +62,6 @@ class Setting_model extends CI_Model
         return $delete ? 1 : 0;
     }
 
-    public function firebase_configurations()
-    {
-        $config['upload_path'] = 'assets';
-        $config['allowed_types'] = 'json';
-        $config['file_name'] = 'firebase_config';
-        $this->load->library('upload', $config);
-        $this->upload->initialize($config);
-
-        $old_file = 'assets/firebase_config.json';
-        if (file_exists($old_file)) {
-            unlink($old_file);
-        }
-
-        if (!$this->upload->do_upload('file')) {
-            return FALSE;
-        } else {
-            $data = $this->upload->data();
-            return TRUE;
-        }
-    }
-
 
     public function update_system_utility()
     {
@@ -684,14 +663,6 @@ class Setting_model extends CI_Model
             mkdir(WEB_SETTINGS_LOGO_PATH, 0777, TRUE);
         }
         $settings = [
-            'firebase_api_key',
-            'firebase_auth_domain',
-            'firebase_database_url',
-            'firebase_project_id',
-            'firebase_storage_bucket',
-            'firebase_messager_sender_id',
-            'firebase_app_id',
-            'firebase_measurement_id',
             'company_name_footer',
             'email_footer',
             'phone_number_footer',

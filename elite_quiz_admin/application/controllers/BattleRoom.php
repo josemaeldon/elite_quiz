@@ -63,6 +63,12 @@ class BattleRoom extends REST_Controller
                     'room_code' => $room_code,
                 ],
             ];
+            $roomPayload = array_merge($room, ['room_id' => $room_id]);
+            if (!empty($roomPayload['metadata'])) {
+                $roomPayload['metadata'] = json_decode($roomPayload['metadata'], true);
+            }
+            $this->pushRoomEvent($room_id, 'room_created', $roomPayload);
+            $this->pushRoomEvent($room_id, 'participant_joined', array_merge($participant, $this->getUserInfo($owner_id), ['room_id' => $room_id]));
         } catch (Exception $e) {
             $response = [
                 'error' => true,
@@ -87,12 +93,14 @@ class BattleRoom extends REST_Controller
 
             $existing = $this->db->where('room_id', $room_id)->where('user_id', $user_id)->get('battle_room_participants')->row_array();
             if (empty($existing)) {
-                $this->db->insert('battle_room_participants', [
+                $participant = [
                     'room_id' => $room_id,
                     'user_id' => $user_id,
                     'role' => $role,
                     'joined_at' => date('Y-m-d H:i:s'),
-                ]);
+                ];
+                $this->db->insert('battle_room_participants', $participant);
+                $this->pushRoomEvent($room_id, 'participant_joined', array_merge($participant, $this->getUserInfo($user_id)));
             }
 
             $participants = $this->db->select('brp.*, u.name, u.profile')->from('battle_room_participants brp')
@@ -118,13 +126,16 @@ class BattleRoom extends REST_Controller
                 return $this->response(['error' => true, 'message' => 'Missing data'], REST_Controller::HTTP_OK);
             }
 
-            $this->db->insert('battle_room_messages', [
+            $messageData = [
                 'room_id' => $room_id,
                 'sender_id' => $sender_id,
                 'payload' => $payload,
                 'is_text' => $is_text,
                 'created_at' => date('Y-m-d H:i:s'),
-            ]);
+            ];
+            $this->db->insert('battle_room_messages', $messageData);
+            $messageData['id'] = $this->db->insert_id();
+            $this->pushRoomEvent($room_id, 'message', array_merge($messageData, $this->getUserInfo($sender_id), ['payload' => json_decode($payload, true)]));
 
             $this->response(['error' => false], REST_Controller::HTTP_OK);
         } catch (Exception $e) {
@@ -190,5 +201,107 @@ class BattleRoom extends REST_Controller
                 'messages' => array_reverse($messages),
             ],
         ], REST_Controller::HTTP_OK);
+    }
+
+    public function stream_get()
+    {
+        $room_id = $this->get('room_id');
+        if (!$room_id) {
+            return $this->response(['error' => true, 'message' => 'room_id required'], REST_Controller::HTTP_OK);
+        }
+
+        ignore_user_abort(true);
+        set_time_limit(0);
+        header('Content-Type: text/event-stream; charset=utf-8');
+        header('Cache-Control: no-cache');
+        header('Connection: keep-alive');
+        header('X-Accel-Buffering: no');
+        @ob_end_flush();
+
+        $last_sent_id = (int) ($this->get('last_event_id') ?: 0);
+        if ($last_sent_id === 0) {
+            $lastEventIdValue = null;
+            if (!empty($_SERVER['HTTP_LAST_EVENT_ID'])) {
+                $lastEventIdValue = $_SERVER['HTTP_LAST_EVENT_ID'];
+            } elseif (function_exists('getallheaders')) {
+                $headers = getallheaders();
+                foreach ($headers as $name => $headerValue) {
+                    if (strtolower($name) === 'last-event-id') {
+                        $lastEventIdValue = $headerValue;
+                        break;
+                    }
+                }
+            }
+            if ($lastEventIdValue !== null && $lastEventIdValue !== '') {
+                $last_sent_id = (int) $lastEventIdValue;
+            }
+        }
+
+        while (!connection_aborted()) {
+            $events = $this->db->select('id, event_type, payload')
+                ->from('battle_room_events')
+                ->where('room_id', $room_id)
+                ->where('id >', $last_sent_id)
+                ->order_by('id', 'ASC')
+                ->limit(50)
+                ->get()
+                ->result_array();
+
+            if (!empty($events)) {
+                foreach ($events as $event) {
+                    $payload = $event['payload'];
+                    $decoded = null;
+                    if ($payload !== null) {
+                        $decoded = json_decode($payload, true);
+                        if (json_last_error() !== JSON_ERROR_NONE) {
+                            $decoded = $payload;
+                        }
+                    }
+
+                    $data = json_encode([
+                        'event_type' => $event['event_type'],
+                        'payload' => $decoded,
+                    ]);
+
+                    echo "id: {$event['id']}\n";
+                    echo "event: {$event['event_type']}\n";
+                    echo "data: {$data}\n\n";
+                    flush();
+                    $last_sent_id = $event['id'];
+                }
+            } else {
+                echo ": keep-alive\n\n";
+                flush();
+            }
+
+            sleep(1);
+        }
+
+        exit;
+    }
+
+    private function getUserInfo($userId)
+    {
+        if (!$userId) {
+            return [];
+        }
+
+        $user = $this->db->select('name, profile')->from('tbl_users')->where('id', $userId)->get()->row_array();
+        return $user ?: [];
+    }
+
+    private function pushRoomEvent($roomId, $eventType, $payload = null)
+    {
+        $eventPayload = null;
+        if ($payload !== null) {
+            $eventPayload = json_encode($payload);
+        }
+
+        $this->db->insert('battle_room_events', [
+            'room_id' => $roomId,
+            'event_type' => $eventType,
+            'payload' => $eventPayload,
+            'created_at' => date('Y-m-d H:i:s'),
+        ]);
     }
 }

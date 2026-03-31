@@ -59,12 +59,7 @@ class Login extends CI_Controller
                         }
                     }
                 }
-                $json_file = 'assets/firebase_config.json';
-                if (!file_exists($json_file)) {
-                    redirect('firebase-configurations');
-                } else {
-                    redirect('dashboard');
-                }
+                redirect('dashboard');
             }
         } catch (mysqli_sql_exception $sql) {
             show_error($sql->getMessage(), 500);

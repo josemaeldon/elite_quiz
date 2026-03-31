@@ -65,51 +65,6 @@
                                         <form method="post" class="needs-validation" novalidate="" enctype="multipart/form-data">
                                             <input type="hidden" name="<?= $this->security->get_csrf_token_name(); ?>" value="<?= $this->security->get_csrf_hash(); ?>">
 
-                                            <!-- Firebase Configuration -->
-                                            <h4>
-                                                <label class="control-label"><b><?= lang('firebase_configurations'); ?></b></label>
-                                            </h4>
-                                            <div class="row">
-                                                <div class="form-group col-md-6">
-                                                    <label class="control-label"><?= lang('api_key'); ?></label> <small class="text-danger">*</small>
-                                                    <input type="text" id="firebase_api_key" name="firebase_api_key" required class="form-control" placeholder="<?= lang('api_key'); ?>" value="<?php echo (!empty($firebase_api_key['message'])) ? $firebase_api_key['message'] : "" ?>">
-                                                </div>
-                                                <div class="form-group col-md-6">
-                                                    <label class="control-label"><?= lang('auth_domain'); ?></label> <small class="text-danger">*</small>
-                                                    <input type="text" id="firebase_auth_domain" name="firebase_auth_domain" required class="form-control" placeholder="<?= lang('auth_domain'); ?>" value="<?php echo (!empty($firebase_auth_domain['message'])) ? $firebase_auth_domain['message'] : "" ?>">
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="form-group col-md-6">
-                                                    <label class="control-label"><?= lang('database_url'); ?></label> <small class="text-danger"><?= lang('optional'); ?></small>
-                                                    <input type="text" id="firebase_database_url" name="firebase_database_url" class="form-control" placeholder="<?= lang('database_url'); ?>" value="<?php echo (!empty($firebase_database_url['message'])) ? $firebase_measurement_id['message'] : "" ?>">
-                                                </div>
-                                                <div class="form-group col-md-6">
-                                                    <label class="control-label"><?= lang('project_id'); ?></label> <small class="text-danger">*</small>
-                                                    <input type="text" id="firebase_project_id" name="firebase_project_id" required class="form-control" placeholder="<?= lang('project_id'); ?>" value="<?php echo (!empty($firebase_project_id['message'])) ? $firebase_project_id['message'] : "" ?>">
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="form-group col-md-6">
-                                                    <label class="control-label"><?= lang('storage_bucket'); ?></label> <small class="text-danger">*</small>
-                                                    <input type="text" id="firebase_storage_bucket" name="firebase_storage_bucket" required class="form-control" placeholder="<?= lang('storage_bucket'); ?>" value="<?php echo (!empty($firebase_storage_bucket['message'])) ? $firebase_storage_bucket['message'] : "" ?>">
-                                                </div>
-                                                <div class="form-group col-md-6">
-                                                    <label class="control-label"><?= lang('messaging_sender_id'); ?></label> <small class="text-danger">*</small>
-                                                    <input type="text" id="firebase_messager_sender_id" name="firebase_messager_sender_id" required class="form-control" placeholder="<?= lang('messaging_sender_id'); ?>" value="<?php echo (!empty($firebase_messager_sender_id['message'])) ? $firebase_messager_sender_id['message'] : "" ?>">
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="form-group col-md-6">
-                                                    <label class="control-label"><?= lang('app_id'); ?></label> <small class="text-danger">*</small>
-                                                    <input type="text" id="firebase_app_id" name="firebase_app_id" required class="form-control" placeholder="<?= lang('app_id'); ?>" value="<?php echo (!empty($firebase_app_id['message'])) ? $firebase_app_id['message'] : "" ?>">
-                                                </div>
-                                                <div class="form-group col-md-6">
-                                                    <label class="control-label"><?= lang('measurement_id'); ?></label> <small class="text-danger"><?= lang('optional'); ?></small>
-                                                    <input type="text" id="firebase_measurement_id" name="firebase_measurement_id" class="form-control" placeholder="<?= lang('measurement_id'); ?>" value="<?php echo (!empty($firebase_measurement_id['message'])) ? $firebase_measurement_id['message'] : "" ?>">
-                                                </div>
-                                            </div>
-
                                             <!-- Header Configuration -->
                                             <hr>
                                             <h4>

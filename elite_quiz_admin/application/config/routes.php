@@ -162,8 +162,6 @@ $route['play-store-terms-conditions'] = 'Settings/play_store_terms_conditions';
 $route['contact-us'] = 'Settings/contact_us';
 $route['play-store-contact-us'] = 'Settings/play_store_contact_us';
 $route['profile'] = 'Settings/profile';
-$route['firebase-configurations'] = 'Settings/firebase_configurations';
-
 $route['web-settings'] = 'Settings/web_settings';
 $route['web-home-settings'] = 'Settings/web_home_settings';
 $route['web-home-settings/(:num)'] = 'Settings/edit_web_home_settings/$1';

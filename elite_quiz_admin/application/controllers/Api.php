@@ -4,9 +4,6 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 require APPPATH . '/libraries/REST_Controller.php';
 require FCPATH . 'vendor/autoload.php';
-
-use Kreait\Firebase\Factory;
-use Kreait\Firebase\Messaging\CloudMessage;
 use ReceiptValidator\iTunes\Validator as iTunesValidator;
 
 class Api extends REST_Controller
@@ -79,16 +76,10 @@ class Api extends REST_Controller
     public function user_signup_post()
     {
         try {
-            if ($this->post('firebase_id') && $this->post('type') && ($this->post('firebase_id') != 'null') && ($this->post('firebase_id') != 'NULL')) {
-                $firebase_id = $this->post('firebase_id');
-
-                // ------- Should be Enabled for server  ----------
-                $is_verify = $this->verify_user($firebase_id);
-                // ---------------------------------------------------
-                // ------- Should be Disable for server  ----------
-                // $is_verify=true;
-                // ---------------------------------------------------
-                if ($is_verify) {
+        if ($this->post('firebase_id') && $this->post('type') && ($this->post('firebase_id') != 'null') && ($this->post('firebase_id') != 'NULL')) {
+            $firebase_id = $this->post('firebase_id');
+            $is_verify = !empty($firebase_id);
+            if ($is_verify) {
                     $type = $this->post('type');
                     $email = ($this->post('email')) ? $this->post('email') : '';
                     $name = ($this->post('name')) ? $this->post('name') : '';
@@ -152,7 +143,7 @@ class Api extends REST_Controller
                             }
 
                             //generate token
-                            $api_token = $this->generate_token($user_id, $firebase_id);
+                            $api_token = $this->generate_token($user_id);
                             $this->db->where('id', $user_id)->update('tbl_users', ['api_token' => $api_token]);
 
                             $res1 = $this->db->where('firebase_id', $firebase_id)->get('tbl_users')->row_array();
@@ -212,7 +203,7 @@ class Api extends REST_Controller
                         $this->db->where('id', $insert_id)->update('tbl_users', ['coins' => $welcome_bonus_coins]);
 
                         //generate token
-                        $api_token = $this->generate_token($insert_id, $firebase_id);
+                        $api_token = $this->generate_token($insert_id);
                         $this->db->where('id', $insert_id)->update('tbl_users', ['api_token' => $api_token]);
 
                         $counter = 0;
@@ -366,7 +357,7 @@ class Api extends REST_Controller
                             $this->db->insert('tbl_battle_questions', $frm_data);
                             foreach ($res as $row) {
                                 $row['image'] = (!empty($row['image'])) ? base_url() . QUESTION_IMG_PATH . $row['image'] : '';
-                                $row['answer'] = $this->encrypt_data($firebase_id, trim($row['answer']));
+                                $row['answer'] = $this->encrypt_data($user_id, trim($row['answer']));
 
                                 unset($row['session_answer']);
                                 $temp[] = $row;
@@ -383,7 +374,7 @@ class Api extends REST_Controller
                         $res = json_decode($res['questions'], 1);
                         foreach ($res as $rowData) {
                             $rowData['image'] = (!empty($rowData['image'])) ? base_url() . QUESTION_IMG_PATH . $rowData['image'] : '';
-                            $rowData['answer'] = $this->encrypt_data($firebase_id, trim($rowData['answer']));
+                            $rowData['answer'] = $this->encrypt_data($user_id, trim($rowData['answer']));
                             unset($rowData['session_answer']);
                             $temp[] = $rowData;
                         }
@@ -437,7 +428,7 @@ class Api extends REST_Controller
                     }
                     foreach ($res as $row) {
                         $row['image'] = (!empty($row['image'])) ? base_url() . QUESTION_IMG_PATH . $row['image'] : '';
-                        $row['answer'] = $this->encrypt_data($firebase_id, trim($row['answer']));
+                        $row['answer'] = $this->encrypt_data($user_id, trim($row['answer']));
                         $temp[] = $row;
                     }
                     $res[0]['questions'] = json_encode($temp);
@@ -579,21 +570,21 @@ class Api extends REST_Controller
                             $data[$i]['image'] = ($data[$i]['image']) ? base_url() . GUESS_WORD_IMG_PATH . $data[$i]['image'] : '';
                         } else if ($type == 4 || $type == '4') {
                             $data[$i]['audio'] = ($data[$i]['audio']) ? (($data[$i]['audio_type'] != '1') ? base_url() . QUESTION_AUDIO_PATH : '') . $data[$i]['audio'] : '';
-                            $data[$i] = $this->suffleOptions($data[$i], $firebase_id);
+                            $data[$i] = $this->suffleOptions($data[$i], $user_id);
                             unset($data[$i]['session_answer']);
                         } else if ($type == 5 || $type == '5') {
                             $data[$i]['image'] = ($data[$i]['image']) ? base_url() . MATHS_QUESTION_IMG_PATH . $data[$i]['image'] : '';
-                            $data[$i] = $this->suffleOptions($data[$i], $firebase_id);
+                            $data[$i] = $this->suffleOptions($data[$i], $user_id);
                             unset($data[$i]['session_answer']);
                         } else if ($type == 6 || $type == '6') {
                             $data[$i]['image'] = ($data[$i]['image']) ? base_url() . MULTIMATCH_QUESTION_IMG_PATH . $data[$i]['image'] : '';
                             $answers = explode(',', trim($data[$i]['answer']));
-                            $data[$i]['answer'] = array_map(function ($answer) use ($firebase_id) {
-                                return $this->encrypt_data($firebase_id, $answer);
+                            $data[$i]['answer'] = array_map(function ($answer) use ($user_id) {
+                                return $this->encrypt_data($user_id, $answer);
                             }, $answers);
                         } else {
                             $data[$i]['image'] = ($data[$i]['image']) ? base_url() . QUESTION_IMG_PATH . $data[$i]['image'] : '';
-                            $data[$i] = $this->suffleOptions($data[$i], $firebase_id);
+                            $data[$i] = $this->suffleOptions($data[$i], $user_id);
                             unset($data[$i]['session_answer']);
                         }
                     }
@@ -1337,7 +1328,7 @@ class Api extends REST_Controller
                 if (!empty($data)) {
                     for ($i = 0; $i < count($data); $i++) {
                         $data[$i]['image'] = ($data[$i]['image']) ? base_url() . QUESTION_IMG_PATH . $data[$i]['image'] : '';
-                        $optionData = $this->suffleOptions($data[$i], $firebase_id);
+                        $optionData = $this->suffleOptions($data[$i], $user_id);
                         $data[$i] = $optionData;
                         $questionData[] = [
                             'id' => $data[$i]['id'],
@@ -1415,7 +1406,7 @@ class Api extends REST_Controller
                         if (!empty($result)) {
                             for ($i = 0; $i < count($result); $i++) {
                                 $result[$i]['image'] = ($result[$i]['image']) ? base_url() . QUESTION_IMG_PATH . $result[$i]['image'] : '';
-                                $optionData = $this->suffleOptions($result[$i], $firebase_id);
+                                $optionData = $this->suffleOptions($result[$i], $user_id);
                                 $result[$i] = $optionData;
                                 $questionData[] = [
                                     'id' => $result[$i]['id'],
@@ -1578,7 +1569,7 @@ class Api extends REST_Controller
                 if (!empty($data)) {
                     for ($i = 0; $i < count($data); $i++) {
                         $data[$i]['image'] = ($data[$i]['image']) ? base_url() . QUESTION_IMG_PATH . $data[$i]['image'] : '';
-                        $data[$i] = $this->suffleOptions($data[$i], $firebase_id);
+                        $data[$i] = $this->suffleOptions($data[$i], $user_id);
                         unset($data[$i]['session_answer']);
                     }
                     $response['error'] = false;
@@ -1991,7 +1982,7 @@ class Api extends REST_Controller
                 if (!empty($data)) {
                     for ($i = 0; $i < count($data); $i++) {
                         $data[$i]['image'] = ($data[$i]['image']) ? base_url() . QUESTION_IMG_PATH . $data[$i]['image'] : '';
-                        $optionData = $this->suffleOptions($data[$i], $firebase_id);
+                        $optionData = $this->suffleOptions($data[$i], $user_id);
                         $data[$i] = $optionData;
                         $questionData[] = [
                             'id' => $data[$i]['id'],
@@ -2237,7 +2228,7 @@ class Api extends REST_Controller
                     $questionData = [];
                     for ($i = 0; $i < count($data); $i++) {
                         $data[$i]['image'] = ($data[$i]['image']) ? base_url() . CONTEST_QUESTION_IMG_PATH . $data[$i]['image'] : '';
-                        $optionData = $this->suffleOptions($data[$i], $firebase_id);
+                        $optionData = $this->suffleOptions($data[$i], $user_id);
                         $data[$i] = $optionData;
                         $questionData[] = [
                             'id' => $data[$i]['id'],
@@ -2473,7 +2464,7 @@ class Api extends REST_Controller
 
                     for ($i = 0; $i < count($data); $i++) {
                         $data[$i]['image'] = ($data[$i]['image']) ? base_url() . FUN_LEARN_QUESTION_IMG_PATH . $data[$i]['image'] : '';
-                        $optionData = $this->suffleOptions($data[$i], $firebase_id);
+                        $optionData = $this->suffleOptions($data[$i], $user_id);
                         $data[$i] = $optionData;
                         $questionData[] = [
                             'id' => $data[$i]['id'],
@@ -2804,7 +2795,7 @@ class Api extends REST_Controller
                             'id' => $data[$i]['id'],
                             'answer' => trim($data[$i]['answer']),
                         ];
-                        $data[$i]['answer'] = $this->encrypt_data($firebase_id, trim($data[$i]['answer']));
+                        $data[$i]['answer'] = $this->encrypt_data($user_id, trim($data[$i]['answer']));
                     }
                     if ($questionData) {
                         $this->set_user_session($user_id, $questionData, 'tbl_user_guess_the_word_session');
@@ -2941,7 +2932,7 @@ class Api extends REST_Controller
                 if (!empty($data)) {
                     for ($i = 0; $i < count($data); $i++) {
                         $data[$i]['image'] = ($data[$i]['image']) ? base_url() . QUESTION_IMG_PATH . $data[$i]['image'] : '';
-                        $data[$i] = $this->suffleOptions($data[$i], $firebase_id);
+                        $data[$i] = $this->suffleOptions($data[$i], $user_id);
                         $questionData[] = [
                             'id' => $data[$i]['id'],
                             'answer' => $data[$i]['session_answer'],
@@ -3055,7 +3046,7 @@ class Api extends REST_Controller
                             $path = "";
                         }
                         $data[$i]['audio'] = ($data[$i]['audio']) ? $path . $data[$i]['audio'] : '';
-                        $optionData = $this->suffleOptions($data[$i], $firebase_id);
+                        $optionData = $this->suffleOptions($data[$i], $user_id);
                         $data[$i] = $optionData;
                         $questionData[] = [
                             'id' => $data[$i]['id'],
@@ -3354,7 +3345,7 @@ class Api extends REST_Controller
                 if (!empty($data)) {
                     for ($i = 0; $i < count($data); $i++) {
                         $data[$i]['image'] = ($data[$i]['image']) ? base_url() . EXAM_QUESTION_IMG_PATH . $data[$i]['image'] : '';
-                        $data[$i] = $this->suffleOptions($data[$i], $firebase_id);
+                        $data[$i] = $this->suffleOptions($data[$i], $user_id);
                         unset($data[$i]['session_answer']);
                     }
                     $response['error'] = false;
@@ -3794,7 +3785,7 @@ class Api extends REST_Controller
                     $questionData = [];
                     for ($i = 0; $i < count($data); $i++) {
                         $data[$i]['image'] = ($data[$i]['image']) ? base_url() . MATHS_QUESTION_IMG_PATH . $data[$i]['image'] : '';
-                        $optionData = $this->suffleOptions($data[$i], $firebase_id);
+                        $optionData = $this->suffleOptions($data[$i], $user_id);
                         $data[$i] = $optionData;
                         $questionData[] = [
                             'id' => $data[$i]['id'],
@@ -4322,15 +4313,18 @@ class Api extends REST_Controller
                         // 1=android,2=ios
                         if ($pay_from == 1) {
                             $packageName = is_settings('app_package_name') ?? '';
-                            $pathToServiceAccountJsonFile = 'assets/firebase_config.json';
-                            $get_file = file_get_contents($pathToServiceAccountJsonFile); //data read from json file
+                            $serviceAccountPath = 'assets/google_service_account.json';
+                            if (!file_exists($serviceAccountPath)) {
+                                throw new Exception('Missing Google service account file');
+                            }
+                            $get_file = file_get_contents($serviceAccountPath);
                             $fileData = ($get_file != '') ? json_decode($get_file) : '';
                             $applicationName = ($fileData != '') ? $fileData->project_id ?? '' : '';
                             if ($applicationName != '') {
                                 $googleClient = new Google\Client();
                                 $googleClient->setScopes([\Google\Service\AndroidPublisher::ANDROIDPUBLISHER]);
                                 $googleClient->setApplicationName($applicationName);
-                                $googleClient->setAuthConfig($pathToServiceAccountJsonFile);
+                                $googleClient->setAuthConfig($serviceAccountPath);
 
                                 $googleAndroidPublisher = new \Google\Service\AndroidPublisher($googleClient);
                                 $validator = new \ReceiptValidator\GooglePlay\Validator($googleAndroidPublisher);
@@ -4652,8 +4646,8 @@ class Api extends REST_Controller
                             'answer' => $data[$i]['answer']
                         ];
                         $answers = explode(',', trim($data[$i]['answer']));
-                        $data[$i]['answer'] = array_map(function ($answer) use ($firebase_id) {
-                            return $this->encrypt_data($firebase_id, $answer);
+                        $data[$i]['answer'] = array_map(function ($answer) use ($user_id) {
+                            return $this->encrypt_data($user_id, $answer);
                         }, $answers);
                     }
                     if ($questionData) {
@@ -4722,8 +4716,8 @@ class Api extends REST_Controller
                     for ($i = 0; $i < count($data); $i++) {
                         $data[$i]['image'] = ($data[$i]['image']) ? base_url() . MULTIMATCH_QUESTION_IMG_PATH . $data[$i]['image'] : '';
                         $answers = explode(',', trim($data[$i]['answer']));
-                        $data[$i]['answer'] = array_map(function ($answer) use ($firebase_id) {
-                            return $this->encrypt_data($firebase_id, $answer);
+                        $data[$i]['answer'] = array_map(function ($answer) use ($user_id) {
+                            return $this->encrypt_data($user_id, $answer);
                         }, $answers);
                     }
                     $response['error'] = false;
@@ -4800,8 +4794,8 @@ class Api extends REST_Controller
                             'answer' => $data[$i]['answer']
                         ];
                         $answers = explode(',', trim($data[$i]['answer']));
-                        $data[$i]['answer'] = array_map(function ($answer) use ($firebase_id) {
-                            return $this->encrypt_data($firebase_id, $answer);
+                        $data[$i]['answer'] = array_map(function ($answer) use ($user_id) {
+                            return $this->encrypt_data($user_id, $answer);
                         }, $answers);
                     }
                     if ($questionData) {
@@ -6842,12 +6836,7 @@ class Api extends REST_Controller
         );
 
         if ($fcm_id && $fcm_id != '' && $fcm_id != 'empty') {
-            $registrationID = explode(',', $fcm_id);
-            $factory = (new Factory)->withServiceAccount('assets/firebase_config.json');
-            $messaging = $factory->createMessaging();
-            $message = CloudMessage::new();
-            $message = $message->withNotification($fcmMsg)->withData($fcmMsg);
-            $messaging->sendMulticast($message, $registrationID);
+            log_message('info', "Badge notification suppressed for user {$user_id} (app push disabled).");
         }
 
         $user_web_language = $res['web_language'];
@@ -6868,12 +6857,7 @@ class Api extends REST_Controller
         );
 
         if ($web_fcm_id && $web_fcm_id != '' && $web_fcm_id != 'empty') {
-            $registrationID = explode(',', $web_fcm_id);
-            $factory = (new Factory)->withServiceAccount('assets/firebase_config.json');
-            $messaging = $factory->createMessaging();
-            $message = CloudMessage::new();
-            $message = $message->withNotification($web_fcmMsg)->withData($web_fcmMsg);
-            $messaging->sendMulticast($message, $registrationID);
+            log_message('info', "Badge notification suppressed for user {$user_id} (web push disabled).");
         }
     }
 
@@ -6986,37 +6970,13 @@ class Api extends REST_Controller
         }
     }
 
-    public function verify_user($firebase_id)
-    {
-        $firebase_config = 'assets/firebase_config.json';
-        if (file_exists($firebase_config)) {
-            $factory = (new Factory)->withServiceAccount($firebase_config);
-            $firebaseauth = $factory->createAuth();
-            try {
-                $user = (array) $firebaseauth->getUser($firebase_id);
-                if ($user['uid'] == $firebase_id) {
-                    return true;
-                } else {
-                    return false;
-                }
-            } catch (\Kreait\Firebase\Exception\Auth\UserNotFound $e) {
-                return false;
-            } catch (Exception $e) {
-                return false;
-            }
-        } else {
-            return false;
-        }
-    }
-
-    public function generate_token($user_id, $firebase_id)
+    public function generate_token($user_id)
     {
         $payload = [
             'iat' => time(), /* issued at time */
             'iss' => 'Quiz',
             'exp' => time() + (30 * 60 * 60 * 24), /* expires after 1 minute */
             'user_id' => $user_id,
-            'firebase_id' => $firebase_id,
             'sub' => 'Quiz Authentication',
         ];
         return $this->jwt->encode($payload, $this->JWT_SECRET_KEY);
@@ -7041,11 +7001,13 @@ class Api extends REST_Controller
                 } else {
                     $payload = $this->jwt->decode($token, $this->JWT_SECRET_KEY, ['HS256']);
                     if ($payload) {
-                        if (isset($payload->user_id) && isset($payload->firebase_id)) {
+                        if (isset($payload->user_id)) {
+                            $userId = $payload->user_id;
                             $response['error'] = false;
-                            $response['user_id'] = $payload->user_id;
-                            $response['firebase_id'] = $payload->firebase_id;
+                            $response['user_id'] = $userId;
+                            $response['firebase_id'] = $res['firebase_id'] ?? '';
                             $response['status'] = $res['status'];
+                            $response['encryption_key'] = $this->getUserEncryptionKey($userId);
                             return $response;
                         } else {
                             $response['error'] = true;
@@ -7070,13 +7032,24 @@ class Api extends REST_Controller
         }
     }
 
-    public function encrypt_data($key, $text)
+    public function encrypt_data($user_id, $text)
     {
+        $encryptionKey = $this->getUserEncryptionKey($user_id);
         $iv = openssl_random_pseudo_bytes(16);
-        $key .= "0000";
-        $encrypted_data = openssl_encrypt($text, 'aes-256-cbc', $key, 0, $iv);
+        $binaryKey = hex2bin($encryptionKey);
+        if ($binaryKey === false) {
+            $binaryKey = substr($encryptionKey, 0, 32);
+        }
+        $encrypted_data = openssl_encrypt($text, 'aes-256-cbc', $binaryKey, 0, $iv);
         $data = array("ciphertext" => $encrypted_data, "iv" => bin2hex($iv));
         return $data;
+    }
+
+    private function getUserEncryptionKey($userId)
+    {
+        $userIdString = (string) $userId;
+        $salt = is_settings('encryption_salt') ?: 'elite_quiz_encryption';
+        return hash('sha256', $userIdString . $salt);
     }
 
     public function decrypt_data($key, $text, $iv)
@@ -7089,7 +7062,7 @@ class Api extends REST_Controller
         return $decrypted_data;
     }
 
-    function suffleOptions($data, $firebase_id)
+    function suffleOptions($data, $user_id)
     {
         // Create an associative array of options
         $options = array(
@@ -7120,12 +7093,12 @@ class Api extends REST_Controller
                 if ($shuffled_options[$j] == $correctAnswerValue) {
                     $suffledAnswer = chr(ord('a') + $j);  // converts the index $j to a letter like 0 to 'a', 1 to 'b', etc.
                     $data['session_answer'] = $suffledAnswer;
-                    $data['answer'] = $this->encrypt_data($firebase_id, $suffledAnswer);
+                    $data['answer'] = $this->encrypt_data($user_id, $suffledAnswer);
                 }
             }
         } else {
             $data['session_answer'] = trim($data['answer']);
-            $data['answer'] = $this->encrypt_data($firebase_id, trim($data['answer']));
+            $data['answer'] = $this->encrypt_data($user_id, trim($data['answer']));
         }
         return $data;
     }

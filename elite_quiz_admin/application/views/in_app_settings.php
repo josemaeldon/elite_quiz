@@ -71,17 +71,13 @@
                                             </div>
                                             <div class="row">
                                                 <div class="form-group col-sm-12">
-                                                    <?php
-                                                    if ($is_validate) {
-                                                    ?>
+                                                    <?php if ($is_validate) { ?>
                                                         <input type="submit" name="btnadd" value="<?= lang('submit'); ?>" class="<?= BUTTON_CLASS ?>" />
-                                                    <?php
-                                                    } else {
-                                                    ?>
-                                                        <h6 class="text-danger"><?= lang('check_your_firebase_configuration_file'); ?></h6>
-                                                    <?php
-                                                    }
-                                                    ?>
+                                                    <?php } else { ?>
+                                                        <div class="alert alert-warning mb-0">
+                                                            Coloque o arquivo JSON da conta de serviço do Google em <code>assets/google_service_account.json</code> e recarregue a página.
+                                                        </div>
+                                                    <?php } ?>
                                                 </div>
                                             </div>
                                         </form>

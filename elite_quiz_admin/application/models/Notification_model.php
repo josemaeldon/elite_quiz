@@ -1,10 +1,5 @@
 <?php
 
-use Kreait\Firebase\Factory;
-use Kreait\Firebase\Messaging\CloudMessage;
-
-require FCPATH . 'vendor/autoload.php';
-
 defined('BASEPATH') or exit('No direct script access allowed');
 
 class Notification_model extends CI_Model
@@ -125,14 +120,10 @@ class Notification_model extends CI_Model
             $this->db->where('id', $insert_id)->update('tbl_notifications', $userID);
         }
 
-        $registrationIDs = $fcm_ids;
-        $registrationIDs_chunks = array_chunk($registrationIDs, 500);
-        $factory = (new Factory)->withServiceAccount('assets/firebase_config.json');
-        $messaging = $factory->createMessaging();
-        foreach ($registrationIDs_chunks as $registrationIDs) {
-            $message = CloudMessage::new();
-            $message = $message->withNotification($fcmMsg)->withData($fcmMsg);
-            $messaging->sendMulticast($message, $registrationIDs);
+        if (!empty($fcm_ids)) {
+            log_message('info', 'Push dispatch skipped (notifications disabled). Recipient count: ' . count($fcm_ids));
+        } else {
+            log_message('info', 'No push targets available for notification id ' . $insert_id);
         }
     }
 

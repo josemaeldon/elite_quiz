@@ -102,7 +102,7 @@ const FunandLearnQuestions = ({
 
       let { id, answer } = questions[currentQuestion];
 
-      let decryptedAnswer = decryptAnswer(answer, userData?.data?.firebase_id);
+      let decryptedAnswer = decryptAnswer(answer, userData?.data?.id);
       let result_score = Score.current;
       if (decryptedAnswer === selected_option) {
         result_score++;

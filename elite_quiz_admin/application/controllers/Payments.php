@@ -1,9 +1,5 @@
 <?php
 
-use Kreait\Firebase\Factory;
-use Kreait\Firebase\Messaging\CloudMessage;
-
-require FCPATH . 'vendor/autoload.php';
 
 defined('BASEPATH') or exit('No direct script access allowed');
 
@@ -99,10 +95,6 @@ class Payments extends CI_Controller
             if (!has_permissions('read', 'payment_requests')) {
                 redirect('/');
             } else {
-                $pathToServiceAccountJsonFile = 'assets/firebase_config.json';
-                if (!file_exists($pathToServiceAccountJsonFile)) {
-                    redirect('firebase-configurations');
-                }
                 if ($this->input->post('btnadd')) {
                     $multiple_ids = $this->input->post('multiple_ids');
                     if (!has_permissions('create', 'payment_settings')) {
@@ -160,36 +152,9 @@ class Payments extends CI_Controller
                             $this->db->where('id', $edit_id)->update('tbl_payment_request', $data);
 
                             if ($status == 1  || $status == 2) {
-                                // send notification                           
-                                if ($status == 1) {
-                                    $title = lang('payment_request_complete');
-                                    $message = lang('your_payment_is_complete_you_have_used') . " " . $coins . " " . lang('points_thank_you');
-                                }
-                                if ($status == 2) {
-                                    $title = lang('payment_details_is_wrong');
-                                    $message = lang('your_payment_details_is_wrong_we_have_refund_your') . " " . $coins . " " . lang('points_thank_you');
-                                }
-
-                                $fcmMsg = array(
-                                    'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
-                                    'type' => 'payment_request',
-                                    'title' => $title,
-                                    'body' => $message,
-                                    'coins' => $coins
-                                );
+                                // push notifications disabled; message stored for future delivery
                                 if ($fcm_id != '' || $web_fcm_id != '') {
-                                    if ($fcm_id != '') {
-                                        $registrationID = explode(',', $fcm_id);
-                                    } else if ($web_fcm_id != '') {
-                                        $registrationID = explode(',', $web_fcm_id);
-                                    }
-                                    if ($registrationID) {
-                                        $factory = (new Factory)->withServiceAccount('assets/firebase_config.json');
-                                        $messaging = $factory->createMessaging();
-                                        $message = CloudMessage::new();
-                                        $message = $message->withNotification($fcmMsg)->withData($fcmMsg);
-                                        $messaging->sendMulticast($message, $registrationID);
-                                    }
+                                    log_message('info', "Push notification suppressed for payment_request status {$status} (user {$user_id}).");
                                 }
                             }
                             $this->session->set_flashdata('success', lang('data_updated_successfully'));

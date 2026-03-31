@@ -16,39 +16,6 @@ class Settings extends CI_Controller
         }
     }
 
-    public function firebase_configurations()
-    {
-        try {
-            if (!$this->session->userdata('isLoggedIn')) {
-                redirect('/');
-            } else {
-                if (!has_permissions('read', 'firebase_configurations')) {
-                    redirect('/');
-                } else {
-                    if ($this->input->post('btnadd')) {
-                        if (!has_permissions('update', 'firebase_configurations')) {
-                            $this->session->set_flashdata('error', lang(PERMISSION_ERROR_MSG));
-                        } else {
-                            $data = $this->Setting_model->firebase_configurations();
-                            if ($data == false) {
-                                $this->session->set_flashdata('error', lang('only_json_file_allow'));
-                            } else {
-                                $this->session->set_flashdata('success', lang('configuration_updated_successfully'));
-                            }
-                        }
-                        redirect('firebase-configurations');
-                    }
-
-                    $this->load->view('firebase_configurations');
-                }
-            }
-        } catch (mysqli_sql_exception $sql) {
-            show_error($sql->getMessage(), 500);
-        } catch (Exception $e) {
-            $this->session->set_flashdata('error', $e->getMessage());
-        }
-    }
-
     public function system_utilities()
     {
         try {
@@ -336,10 +303,6 @@ class Settings extends CI_Controller
                 if (!has_permissions('read', 'send_notification')) {
                     redirect('/');
                 } else {
-                    $pathToServiceAccountJsonFile = 'assets/firebase_config.json';
-                    if (!file_exists($pathToServiceAccountJsonFile)) {
-                        redirect('firebase-configurations');
-                    }
                     if ($this->input->post('btnadd')) {
                         if (!has_permissions('create', 'send_notification')) {
                             $this->session->set_flashdata('error', lang(PERMISSION_ERROR_MSG));
@@ -659,14 +622,6 @@ class Settings extends CI_Controller
                     }
 
                     $settings = [
-                        'firebase_api_key',
-                        'firebase_auth_domain',
-                        'firebase_database_url',
-                        'firebase_project_id',
-                        'firebase_storage_bucket',
-                        'firebase_messager_sender_id',
-                        'firebase_app_id',
-                        'firebase_measurement_id',
                         'company_name_footer',
                         'email_footer',
                         'phone_number_footer',
@@ -828,32 +783,28 @@ class Settings extends CI_Controller
                         redirect('in-app-settings');
                     }
 
-                    $pathToServiceAccountJsonFile = 'assets/firebase_config.json';
-                    if (!file_exists($pathToServiceAccountJsonFile)) {
-                        redirect('firebase-configurations');
-                    } else {
-                        $get_file = file_get_contents($pathToServiceAccountJsonFile); //data read from json file
+                    $settings = [
+                        'in_app_purchase_mode',
+                        'app_package_name',
+                        'shared_secrets'
+                    ];
+                    foreach ($settings as $row) {
+                        $data = $this->db->where('type', $row)->get('tbl_settings')->row_array();
+                        $this->result[$row] = $data;
+                    }
+                    $serviceAccountPath = 'assets/google_service_account.json';
+                    $this->result['clientEmail'] = '';
+                    $this->result['is_validate'] = 0;
+                    if (file_exists($serviceAccountPath)) {
+                        $get_file = file_get_contents($serviceAccountPath);
                         $fileData = ($get_file != '') ? json_decode($get_file) : '';
                         $clientEmail = ($fileData != '') ? $fileData->client_email ?? '' : '';
-                        $applicationName = ($fileData != '') ? $fileData->project_id ?? '' : '';
                         $this->result['clientEmail'] = $clientEmail ?? '';
-                        $this->result['is_validate'] = 0;
-
-                        $settings = [
-                            'in_app_purchase_mode',
-                            'app_package_name',
-                            'shared_secrets'
-                        ];
-                        foreach ($settings as $row) {
-                            $data = $this->db->where('type', $row)->get('tbl_settings')->row_array();
-                            $this->result[$row] = $data;
-                        }
-
-                        if ($applicationName != '') {
+                        if (!empty($clientEmail)) {
                             $this->result['is_validate'] = 1;
                         }
-                        $this->load->view('in_app_settings', $this->result);
                     }
+                    $this->load->view('in_app_settings', $this->result);
                 }
             }
         } catch (mysqli_sql_exception $sql) {

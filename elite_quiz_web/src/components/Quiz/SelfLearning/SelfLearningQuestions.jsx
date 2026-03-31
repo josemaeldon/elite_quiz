@@ -111,7 +111,7 @@ function SelfLearningQuestions({
       let selectedAnswer = data.selected_answer;
       let decryptedAnswer = decryptAnswer(
         data.answer,
-        userData?.data?.firebase_id
+        userData?.data?.id
       );
       if (decryptedAnswer === selectedAnswer) {
         result_score++;

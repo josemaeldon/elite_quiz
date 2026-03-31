@@ -115,7 +115,7 @@ const DailyQuizQuestions = ({
       addAnsweredQuestion(currentQuestion);
       let { id, answer } = questions[currentQuestion];
 
-      let decryptedAnswer = decryptAnswer(answer, userData?.data?.firebase_id);
+      let decryptedAnswer = decryptAnswer(answer, userData?.data?.id);
       let result_score = Score.current;
 
       if (decryptedAnswer === selected_option) {
@@ -185,7 +185,7 @@ const DailyQuizQuestions = ({
     //Identify the correct answer option and add that to visible option array
     let decryptedAnswer = decryptAnswer(
       questions[currentQuestion].answer,
-      userData?.data?.firebase_id
+      userData?.data?.id
     );
 
     let index = all_option.indexOf("option" + decryptedAnswer);
@@ -246,7 +246,7 @@ const DailyQuizQuestions = ({
     audiencePollClicked.current = true;
     let update_questions = [...questions];
     let { answer, optione, question_type } = update_questions[currentQuestion];
-    let decryptedAnswer = decryptAnswer(answer, userData?.data?.firebase_id);
+    let decryptedAnswer = decryptAnswer(answer, userData?.data?.id);
     let all_option = [];
     if (question_type === "2") {
       all_option = ["a", "b"];
