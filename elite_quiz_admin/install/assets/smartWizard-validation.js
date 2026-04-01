@@ -31,21 +31,14 @@ function validateAllSteps() {
         $('#wizard_verticle').smartWizard('setError', { stepnum: 1, iserror: false });
     }
 
-    if (validateStep2() == false) {
-        isStepValid = false;
-        $('#wizard_verticle').smartWizard('setError', { stepnum: 2, iserror: true });
-    } else {
-        $('#wizard_verticle').smartWizard('setError', { stepnum: 2, iserror: false });
-    }
-
-    var res = validateStep3();
+    var res = validateStep2();
     if (res.error == true) {
         isStepValid = false;
         $('#wizard_verticle').smartWizard('showMessage', res.message);
-        $('#wizard_verticle').smartWizard('setError', { stepnum: 3, iserror: true });
+        $('#wizard_verticle').smartWizard('setError', { stepnum: 2, iserror: true });
     } else {
         $('#wizard_verticle').smartWizard('hideMessage');
-        $('#wizard_verticle').smartWizard('setError', { stepnum: 3, iserror: false });
+        $('#wizard_verticle').smartWizard('setError', { stepnum: 2, iserror: false });
     }
 
     if (!isStepValid) {
@@ -56,7 +49,6 @@ function validateAllSteps() {
 
 function validateSteps(step) {
     var isStepValid = true;
-    var minPHPVersion = '7.3';
     // validate step 1
     if (step == 1) {
         if (validateStep1() == false) {
@@ -82,18 +74,6 @@ function validateSteps(step) {
         }
     }
 
-    //  validate step3
-    if (step == 3) {
-        if (validateStep3() == false) {
-            isStepValid = false;
-            $('#wizard_verticle').smartWizard('showMessage', 'Please correct the errors in step' + step + ' and click next.');
-            $('#wizard_verticle').smartWizard('setError', { stepnum: step, iserror: true });
-        } else {
-            $('#wizard_verticle').smartWizard('hideMessage');
-            $('#wizard_verticle').smartWizard('setError', { stepnum: step, iserror: false });
-        }
-    }
-
     return isStepValid;
 }
 
@@ -109,52 +89,13 @@ function validateStep1() {
 
 function validateStep2() {
     var data = {
-        'error': true,
-        'message': "Please required all field."
-    };
-    $('#step-2 input').each(function () {
-        if (!$(this).val() && $(this).val().length <= 0) {
-            data = {
-                'error': true,
-                'message': "Please required all field."
-            };
-        }
-    });
-    var purchase_code = $("#step-2 input#purchase_code").val();
-    var app_url = window.location.host + window.location.pathname;
-    app_url = app_url.replace("install/index.php", "");
-    app_url = app_url.replace("install/", "");
-    if (purchase_code !== "" && app_url !== "") {
-        data = check_purchase_code(purchase_code, app_url);
-    } else {
-        data = {
-            'error': true,
-            'message': "Please required all field."
-        };
-    }
-    return data;
-}
-
-function check_purchase_code(purchase_code, app_url) {
-    $.ajaxSetup({ async: false, dataType: 'json' });
-    var returnUserData = null;
-    $.post('https://validator.wrteam.in/flutter_quiz_validator?purchase_code=' + purchase_code + '&domain_url=' + app_url, function (data) {
-        returnUserData = data;
-    });
-    $.ajaxSetup({ async: true });
-    return returnUserData;
-}
-
-function validateStep3() {
-    var data = {
         'error': false,
         'message': ""
     };
 
-    var hostname = $("#step-3 input#hostname").val();
-    var database = $("#step-3 input#database").val();
-    var username = $("#step-3 input#username").val();
-    var password = $("#step-3 input#password").val();
+    var hostname = $("#step-2 input#hostname").val();
+    var database = $("#step-2 input#database").val();
+    var username = $("#step-2 input#username").val();
 
     if (hostname != "" && database != "" && username != "") {
         data = {

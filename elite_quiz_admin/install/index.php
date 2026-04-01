@@ -90,7 +90,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST) {
                                 <ul class="list-unstyled wizard_steps">
                                     <li><a href="#step-1"><span class="step_no">1</span></a></li>
                                     <li><a href="#step-2"><span class="step_no">2</span></a></li>
-                                    <li><a href="#step-3"><span class="step_no">3</span></a></li>
                                 </ul>
 
                                 <div id="step-1">
@@ -129,31 +128,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST) {
                                 </div>
 
                                 <div id="step-2">
-                                    <div class="col-md-12">
-                                        <div class="outer_div">
-                                            <div class="form-group row">
-                                                <div class="col-md-12 text-center">
-                                                    <h5>Check Purchase Code</h5>
-                                                </div>
-                                            </div>
-                                            <div class="form-group row">
-                                                <div class="col-md-12">
-                                                    <label>Purchase Code <small class="text-danger">*</small></label>
-                                                    <input name="purchase_code" type="text" id="purchase_code" class="form-control" required placeholder="Enter Purchase Code" />
-                                                    <?php
-                                                    $appurl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-                                                    $appurl = preg_replace('#^https?://#i', '', $appurl);
-                                                    $appurl = str_replace('install/index.php', '', $appurl);
-                                                    $appurl = str_replace('install/', '', $appurl);
-                                                    ?>
-                                                    <input value="<?= $appurl; ?>" name="app_url" type="hidden" id="app_url" class="form-control" required />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div id="step-3">
                                     <div class="col-md-12">
                                         <div class="outer_div">
                                             <div class="form-group row">
