@@ -163,15 +163,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST) {
                                                     <input name="hostname" type="text" id="hostname" value="localhost" class="form-control" required placeholder="Your Hostname" />
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <label>Database Name <small class="text-danger">*</small></label>
-                                                    <input name="database" type="text" id="database" class="form-control" required placeholder="Your Database Name" />
+                                                    <label>Database Port <small class="text-danger">*</small></label>
+                                                    <input name="port" type="number" id="port" value="5432" class="form-control" required placeholder="5432" />
                                                 </div>
                                             </div>
                                             <div class="form-group row">
                                                 <div class="col-md-6">
+                                                    <label>Database Name <small class="text-danger">*</small></label>
+                                                    <input name="database" type="text" id="database" class="form-control" required placeholder="Your Database Name" />
+                                                </div>
+                                                <div class="col-md-6">
                                                     <label>Database Username <small class="text-danger">*</small></label>
                                                     <input name="username" type="text" id="username" class="form-control" required placeholder="Your Username" />
                                                 </div>
+                                            </div>
+                                            <div class="form-group row">
                                                 <div class="col-md-6">
                                                     <label>Database Password</label>
                                                     <input name="password" type="password" id="password" class="form-control" placeholder="Your Password" />

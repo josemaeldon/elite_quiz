@@ -26,10 +26,13 @@ class Core {
 
         $database_file = file_get_contents($template_path);
 
+        $port = isset($data['port']) && $data['port'] !== '' ? (int) $data['port'] : 5432;
+
         $new = str_replace("%HOSTNAME%", $data['hostname'], $database_file);
         $new = str_replace("%USERNAME%", $data['username'], $new);
         $new = str_replace("%PASSWORD%", $data['password'], $new);
         $new = str_replace("%DATABASE%", $data['database'], $new);
+        $new = str_replace("%PORT%", (string) $port, $new);
 
         $handle = fopen($output_path, 'w+');
         @chmod($output_path, 0777);
