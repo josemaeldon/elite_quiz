@@ -42,7 +42,7 @@ class Dashboard extends CI_Controller
             $this->result['count_guess_the_word'] = $this->db->count_all('tbl_guess_the_word');
             $this->result['count_system_user'] = $this->db->where('status', 0)->count_all_results('tbl_authenticate');
 
-            $year_data = $this->db->query("SELECT DISTINCT YEAR(date_registered) as year FROM tbl_users")->result();
+            $year_data = $this->db->query("SELECT DISTINCT EXTRACT(YEAR FROM date_registered)::integer as year FROM tbl_users")->result();
             $this->result['years'] = array();
             foreach ($year_data as $row) {
                 $this->result['years'][] = $row->year;
@@ -50,15 +50,15 @@ class Dashboard extends CI_Controller
 
             $year = date('Y');
 
-            $register_month_sql = "SELECT m.name AS month_name,(SELECT COUNT(id) FROM tbl_users u WHERE status = 1 AND YEAR(u.date_registered) = {$year} AND MONTHNAME(date_registered) = m.name) AS user_count FROM tbl_month_week m WHERE m.type = 1";
+            $register_month_sql = "SELECT m.name AS month_name,(SELECT COUNT(id) FROM tbl_users u WHERE status = 1 AND EXTRACT(YEAR FROM u.date_registered) = {$year} AND TO_CHAR(date_registered, 'FMMonth') = m.name) AS user_count FROM tbl_month_week m WHERE m.type = 1";
             $month_register_query = $this->db->query($register_month_sql)->result();
             $this->result['month_data'] = $month_register_query;
 
-            $register_week_sql = "SELECT day_name,COUNT(u.id) AS user_count FROM (SELECT 'Monday' AS day_name UNION ALL SELECT 'Tuesday' UNION ALL SELECT 'Wednesday' UNION ALL SELECT 'Thursday' UNION ALL SELECT 'Friday' UNION ALL SELECT 'Saturday' UNION ALL SELECT 'Sunday') AS days LEFT JOIN tbl_users u ON DAYNAME(u.date_registered) = days.day_name AND u.status = 1 AND YEARWEEK(u.date_registered, 1) = YEARWEEK(CURDATE(), 1) GROUP BY day_name ORDER BY FIELD(day_name, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')";
+            $register_week_sql = "SELECT day_name,COUNT(u.id) AS user_count FROM (SELECT 'Monday' AS day_name UNION ALL SELECT 'Tuesday' UNION ALL SELECT 'Wednesday' UNION ALL SELECT 'Thursday' UNION ALL SELECT 'Friday' UNION ALL SELECT 'Saturday' UNION ALL SELECT 'Sunday') AS days LEFT JOIN tbl_users u ON TO_CHAR(u.date_registered, 'FMDay') = days.day_name AND u.status = 1 AND DATE_TRUNC('week', u.date_registered::date) = DATE_TRUNC('week', CURRENT_DATE) GROUP BY day_name ORDER BY CASE day_name WHEN 'Monday' THEN 1 WHEN 'Tuesday' THEN 2 WHEN 'Wednesday' THEN 3 WHEN 'Thursday' THEN 4 WHEN 'Friday' THEN 5 WHEN 'Saturday' THEN 6 WHEN 'Sunday' THEN 7 END";
             $week_register_query = $this->db->query($register_week_sql)->result();
             $this->result['week_data'] = $week_register_query;
 
-            $day_register_sql = "SELECT DATE_FORMAT(dates.hour, '%Y-%m-%d %H:00:00') AS hour,COALESCE(COUNT(u.id), 0) AS user_count,DATE_FORMAT(dates.hour, '%H') AS day_name FROM (SELECT '" . $this->toDate . "' + INTERVAL a.a HOUR AS hour FROM (SELECT 0 AS a UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12 UNION ALL SELECT 13 UNION ALL SELECT 14 UNION ALL SELECT 15 UNION ALL SELECT 16 UNION ALL SELECT 17 UNION ALL SELECT 18 UNION ALL SELECT 19 UNION ALL SELECT 20 UNION ALL SELECT 21 UNION ALL SELECT 22 UNION ALL SELECT 23 ) a ) dates LEFT JOIN tbl_users u ON dates.hour = DATE_FORMAT(u.date_registered, '%Y-%m-%d %H:00:00') AND DATE(u.date_registered) = '" . $this->toDate . "' AND u.status = 1 GROUP BY hour, day_name ORDER BY hour";
+            $day_register_sql = "SELECT TO_CHAR(dates.hour, 'YYYY-MM-DD HH24:00:00') AS hour,COALESCE(COUNT(u.id), 0) AS user_count,TO_CHAR(dates.hour, 'HH24') AS day_name FROM (SELECT '" . $this->toDate . "'::timestamp + (a.a || ' hours')::interval AS hour FROM (SELECT 0 AS a UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12 UNION ALL SELECT 13 UNION ALL SELECT 14 UNION ALL SELECT 15 UNION ALL SELECT 16 UNION ALL SELECT 17 UNION ALL SELECT 18 UNION ALL SELECT 19 UNION ALL SELECT 20 UNION ALL SELECT 21 UNION ALL SELECT 22 UNION ALL SELECT 23 ) a ) dates LEFT JOIN tbl_users u ON dates.hour = DATE_TRUNC('hour', u.date_registered) AND u.date_registered::date = '" . $this->toDate . "'::date AND u.status = 1 GROUP BY hour, day_name ORDER BY hour";
             $day_register_query = $this->db->query($day_register_sql)->result();
             $this->result['day_data'] = $day_register_query;
 
@@ -316,7 +316,8 @@ class Dashboard extends CI_Controller
     public function getYearForMonthChart($year)
     {
         try {
-            $queryData = $this->result['month_data'] = $this->db->query("SELECT m.name as month_name, (SELECT COUNT(id) AS user_count FROM tbl_users WHERE YEAR(date_registered) = $year AND MONTHNAME(date_registered) = m.name GROUP BY MONTH(date_registered)) as user_count FROM tbl_month_week m WHERE m.type=1")->result();
+            $year = (int) $year;
+            $queryData = $this->result['month_data'] = $this->db->query("SELECT m.name as month_name, (SELECT COUNT(id) AS user_count FROM tbl_users WHERE EXTRACT(YEAR FROM date_registered) = $year AND TO_CHAR(date_registered, 'FMMonth') = m.name GROUP BY EXTRACT(MONTH FROM date_registered)) as user_count FROM tbl_month_week m WHERE m.type=1")->result();
             $mLable = $mData = array();
             foreach ($queryData as $mD) {
                 $mLable[] = $mD->month_name;
