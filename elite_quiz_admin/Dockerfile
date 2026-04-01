@@ -4,8 +4,8 @@ WORKDIR /var/www/html
 
 # Dependências de sistema necessárias
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libpq-dev zip unzip git && \
-    docker-php-ext-install pdo pdo_pgsql pgsql && \
+    apt-get install -y --no-install-recommends libpq-dev libzip-dev zip unzip git && \
+    docker-php-ext-install pdo pdo_pgsql pgsql zip && \
     rm -rf /var/lib/apt/lists/*
 
 # Enable mod_rewrite, suppress FQDN warning, and allow .htaccess overrides
@@ -24,5 +24,9 @@ COPY . .
 
 RUN chown -R www-data:www-data /var/www/html
 
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 EXPOSE 80
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["apache2-foreground"]

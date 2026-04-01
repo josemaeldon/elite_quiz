@@ -40,6 +40,14 @@ class Core {
         if (is_writable($output_path)) {
 
             if (fwrite($handle, $new)) {
+                // Also persist config to the Docker volume so it survives image updates
+                $persistent_dir = '/var/lib/elite_quiz_admin';
+                $persistent_config = $persistent_dir . '/database.php';
+                if (is_dir($persistent_dir)) {
+                    @file_put_contents($persistent_config, $new);
+                }
+                // Create installed flag to prevent re-running the installer
+                @touch($persistent_dir . '/.installed');
                 return true;
             } else {
                 return false;

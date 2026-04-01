@@ -38,6 +38,12 @@ const Routes = ({ children }) => {
   const requiresAuth = isRouteProtected(pathname);
 
   useEffect(() => {
+    // On the install page, skip web settings and unblock rendering immediately
+    if (pathname === "/install") {
+      setLoading(false);
+      return;
+    }
+
     const firstLoad = sessionStorage.getItem("firstLoad_WebSettings_Config");
     const manualRefresh = sessionStorage.getItem(
       "manualRefresh_WebSettings_Config"

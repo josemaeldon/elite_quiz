@@ -2,7 +2,7 @@
 import { Provider } from "react-redux";
 import { store } from "../store/store";
 import { Toaster } from "react-hot-toast";
-import { Router } from "next/router";
+import { Router, useRouter } from "next/router";
 import { useEffect } from "react";
 import NProgress from "nprogress";
 import InspectElement from "@/components/InspectElement/InspectElement";
@@ -22,6 +22,23 @@ const queryClient = new QueryClient();
 
 // ** Configure JSS & ClassName
 const App = ({ Component, pageProps }) => {
+  const router = useRouter();
+
+  // Redirect to the web installer on first access if the app is not configured yet
+  useEffect(() => {
+    if (router.pathname === "/install") return;
+    fetch("/api/setup-status")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.configured) {
+          router.replace("/install");
+        }
+      })
+      .catch(() => {
+        // If the API route is unavailable, assume the app is configured
+      });
+  }, [router]);
+
   // Set up router event handlers using useEffect to avoid multiple registrations
   useEffect(() => {
     // ========== GLOBAL PWA INSTALL PROMPT CAPTURE ==========
