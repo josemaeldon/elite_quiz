@@ -22,7 +22,7 @@ export default function handler(req, res) {
   }
 
   try {
-    fs.mkdirSync(path.dirname(RUNTIME_ENV_PATH), { recursive: true });
+    fs.mkdirSync(path.dirname(RUNTIME_ENV_PATH), { recursive: true, mode: 0o700 });
     const content = `NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL.trim()}\n`;
     fs.writeFileSync(RUNTIME_ENV_PATH, content, { mode: 0o600 });
     return res.status(200).json({

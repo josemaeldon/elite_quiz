@@ -37,7 +37,7 @@ const App = ({ Component, pageProps }) => {
       .catch(() => {
         // If the API route is unavailable, assume the app is configured
       });
-  }, []);
+  }, [router]);
 
   // Set up router event handlers using useEffect to avoid multiple registrations
   useEffect(() => {

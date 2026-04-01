@@ -20,7 +20,7 @@ const InstallPage = () => {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
