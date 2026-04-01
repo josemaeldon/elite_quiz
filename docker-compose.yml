@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+  elite_quiz_admin:
+    image: ghcr.io/${GHCR_OWNER:-your-org}/elite-quiz-admin:${TAG:-latest}
+    build:
+      context: ./elite_quiz_admin
+      dockerfile: Dockerfile
+    env_file:
+      - .env.admin
+    volumes:
+      - elite_quiz_admin_data:/var/lib/elite_quiz_admin
+    networks:
+      - elite-quiz-net
+    deploy:
+      restart_policy:
+        condition: on-failure
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.elite_quiz_admin.rule=Host(`${ADMIN_HOST:-admin.elitequiz.local}`)
+        - traefik.http.routers.elite_quiz_admin.entrypoints=websecure
+        - traefik.http.routers.elite_quiz_admin.tls.certresolver=letsencryptresolver
+        - traefik.http.services.elite_quiz_admin.loadbalancer.server.port=80
+
+  elite_quiz_web:
+    image: ghcr.io/${GHCR_OWNER:-your-org}/elite-quiz-web:${TAG:-latest}
+    build:
+      context: ./elite_quiz_web
+      dockerfile: Dockerfile
+    env_file:
+      - .env.web
+    volumes:
+      - elite_quiz_web_data:/var/lib/elite_quiz_web
+    networks:
+      - elite-quiz-net
+    deploy:
+      restart_policy:
+        condition: on-failure
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.elite_quiz_web.rule=Host(`${WEB_HOST:-web.elitequiz.local}`)
+        - traefik.http.routers.elite_quiz_web.entrypoints=websecure
+        - traefik.http.routers.elite_quiz_web.tls.certresolver=letsencryptresolver
+        - traefik.http.services.elite_quiz_web.loadbalancer.server.port=3000
+
+volumes:
+  elite_quiz_admin_data:
+  elite_quiz_web_data:
+
+networks:
+  elite-quiz-net:
+    external: true
