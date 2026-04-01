@@ -214,12 +214,12 @@ class Backup extends CI_Controller
         $table = $tables[$tableIndex];
         $limit = 500;
 
-        $rows = $this->db->query("SELECT * FROM `$table` LIMIT $offset,$limit")->result_array();
+        $rows = $this->db->query("SELECT * FROM $table LIMIT $limit OFFSET $offset")->result_array();
         $file = fopen($this->tempDir . $session['file'], 'a');
 
         foreach ($rows as $row) {
             $vals = array_map([$this->db, 'escape'], $row);
-            fwrite($file, "INSERT INTO `$table` VALUES(" . implode(',', $vals) . ");\n");
+            fwrite($file, "INSERT INTO $table VALUES(" . implode(',', $vals) . ");\n");
         }
         fclose($file);
 

@@ -347,7 +347,7 @@ class Dashboard extends CI_Controller
                 $language_id = $this->input->post('language_id');
                 $this->db->where('language_id', $language_id);
             }
-            $category_data = $this->db->select('GROUP_CONCAT(id SEPARATOR ",") as id')->where('type', $type)->order_by('id', 'DESC')->get('tbl_category')->row_array();
+            $category_data = $this->db->select("STRING_AGG(id::text, ',') as id", false)->where('type', $type)->order_by('id', 'DESC')->get('tbl_category')->row_array();
             $options = '';
             if ($category_data['id'] != null) {
                 $data = $this->db->where_in('maincat_id', explode(',', $category_data['id']))->order_by('id', 'DESC')->get('tbl_subcategory')->result();

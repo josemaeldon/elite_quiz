@@ -245,3 +245,9 @@ $route['backup/cancel_assets'] = 'Backup/cancel_assets';
 
 // Delete backups
 $route['backup/delete_backup'] = 'Backup/delete_backup';
+
+// Local Auth API (called via /api/Auth/...)
+$route['api/Auth/(:any)'] = 'Auth/$1';
+
+// Battle Room API (called via /api/BattleRoom/...)
+$route['api/BattleRoom/(:any)'] = 'BattleRoom/$1';

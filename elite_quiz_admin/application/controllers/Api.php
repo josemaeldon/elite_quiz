@@ -33,7 +33,7 @@ class Api extends REST_Controller
 
             $questionShuffleMode = is_settings('question_shuffle_mode');
             if ($questionShuffleMode) {
-                $this->Order_By = 'rand()';
+                $this->Order_By = 'RANDOM()';
             } else {
                 $this->Order_By = 'id';
             }
@@ -333,7 +333,7 @@ class Api extends REST_Controller
                         }
                         $this->db->join('tbl_category c', 'tbl_question.category = c.id')->where('c.is_premium = 0');
                         $this->db->join('tbl_subcategory sc', 'tbl_question.subcategory = sc.id', 'left');
-                        $this->db->order_by('rand()');
+                        $this->db->order_by('RANDOM()');
                         if ($fix_question == 1) {
                             $this->db->limit($limit, 0);
                         }
@@ -679,10 +679,10 @@ class Api extends REST_Controller
 
             $this->db->select('id,title,message,users,type,type_id,image,date_sent')
                 ->from('tbl_notifications n')
-                ->where('DATE(n.date_sent) >=', $register_date)
+                ->where('n.date_sent::date >=', $register_date)
                 ->group_start()
                 ->where('n.users', 'all')
-                ->or_where('FIND_IN_SET(' . $user_id . ', n.user_id) >', 0)
+                ->or_where('(' . $user_id . ' = ANY(string_to_array(n.user_id, \',\')::int[]))', null, false)
                 ->group_end()
                 ->order_by($sort, $order)
                 ->limit($limit, $offset);
@@ -690,10 +690,10 @@ class Api extends REST_Controller
 
             $this->db->select('COUNT(*) as total')
                 ->from('tbl_notifications n')
-                ->where('DATE(n.date_sent) >=', $register_date)
+                ->where('n.date_sent::date >=', $register_date)
                 ->group_start()
                 ->where('n.users', 'all')
-                ->or_where('FIND_IN_SET(' . $user_id . ', n.user_id) >', 0)
+                ->or_where('(' . $user_id . ' = ANY(string_to_array(n.user_id, \',\')::int[]))', null, false)
                 ->group_end();
             $total = $this->db->get()->row()->total;
 
@@ -1379,12 +1379,14 @@ class Api extends REST_Controller
                 $today = new DateTime('now', new DateTimeZone($timezone));
                 $today_date = $today->format('Y-m-d');
                 $gmt_format = $this->post('gmt_format') ? $this->post('gmt_format') : $this->systemTimezoneGMT;
+                // Whitelist timezone format to prevent SQL injection (allow letters, digits, /, _, -, +, :)
+                $gmt_format = preg_replace('/[^A-Za-z0-9\/_\-+:]/', '', $gmt_format);
 
-                $res1 = $this->db->where("DATE(CONVERT_TZ(date, '+00:00', '" . $gmt_format . "')) =", $today_date)->where('user_id', $user_id)->get('tbl_daily_quiz_user')->row_array();
+                $res1 = $this->db->where("(date AT TIME ZONE 'UTC' AT TIME ZONE '" . $gmt_format . "')::date =", $today_date)->where('user_id', $user_id)->get('tbl_daily_quiz_user')->row_array();
                 if (empty($res1)) {
                     $questions = $response = array();
                     $language_id = ($this->post('language_id') && is_numeric($this->post('language_id'))) ? $this->post('language_id') : '0';
-                    $res = $this->db->where("DATE(CONVERT_TZ(date_published, '+00:00', '" . $gmt_format . "')) =", $today_date)->where('language_id', $language_id)->get('tbl_daily_quiz')->row_array();
+                    $res = $this->db->where("(date_published AT TIME ZONE 'UTC' AT TIME ZONE '" . $gmt_format . "')::date =", $today_date)->where('language_id', $language_id)->get('tbl_daily_quiz')->row_array();
                     if (!empty($res)) {
                         $res2 = $this->db->where('user_id', $user_id)->get('tbl_daily_quiz_user')->row_array();
                         if (!empty($res2)) {
@@ -1616,7 +1618,7 @@ class Api extends REST_Controller
             $sort = 'r.user_rank';
             $order = 'ASC';
 
-            $sub_query = "SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT m.id, user_id,u.email, u.name,u.profile, SUM(score) as score,date_created, MAX(last_updated) as last_updated FROM tbl_leaderboard_monthly m join tbl_users u on u.id = m.user_id WHERE u.status=1 AND YEAR(last_updated)=$year AND MONTH(last_updated)=$month AND u.status=1 GROUP BY user_id) s, (SELECT @user_rank := 0) init ORDER BY score DESC, last_updated ASC";
+            $sub_query = "SELECT s.*, ROW_NUMBER() OVER (ORDER BY s.score DESC, s.last_updated ASC) AS user_rank FROM ( SELECT m.id, m.user_id, u.email, u.name, u.profile, SUM(m.score) AS score, m.date_created, MAX(m.last_updated) AS last_updated FROM tbl_leaderboard_monthly m JOIN tbl_users u ON u.id = m.user_id WHERE u.status=1 AND EXTRACT(YEAR FROM m.last_updated)=$year AND EXTRACT(MONTH FROM m.last_updated)=$month GROUP BY m.id, m.user_id, u.email, u.name, u.profile, m.date_created) s";
 
             $this->db->reset_query();
             $this->db->from("($sub_query) r");
@@ -1733,14 +1735,7 @@ class Api extends REST_Controller
             $sort = 'r.user_rank';
             $order = 'ASC';
 
-            $this->db->select('d.id, user_id, u.email, u.name, u.profile,score, date_created, @user_rank := @user_rank + 1 AS user_rank', false);
-            $this->db->from("(SELECT @user_rank := 0) init, tbl_leaderboard_daily d");
-            $this->db->join('tbl_users u', 'u.id = d.user_id');
-            $this->db->where('u.status', 1);
-            $this->db->where('DATE(date_created)', $this->toDate);
-            $this->db->order_by('score', 'DESC');
-            $this->db->order_by('date_created', 'ASC');
-            $subQuery = $this->db->get_compiled_select();
+            $subQuery = "SELECT d.id, d.user_id, u.email, u.name, u.profile, d.score, d.date_created, ROW_NUMBER() OVER (ORDER BY d.score DESC, d.date_created ASC) AS user_rank FROM tbl_leaderboard_daily d JOIN tbl_users u ON u.id = d.user_id WHERE u.status = 1 AND d.date_created::date = '" . $this->toDate . "'";
 
             $this->db->reset_query();
             $this->db->from("($subQuery) r");
@@ -1854,7 +1849,7 @@ class Api extends REST_Controller
             $sort = 'r.user_rank';
             $order = 'ASC';
 
-            $sub_query = "(SELECT s.*, @user_rank := @user_rank + 1 AS user_rank FROM (SELECT m.id, m.user_id,u.email, u.name,u.profile, SUM(m.score) AS score,MAX(m.last_updated) as last_updated FROM tbl_leaderboard_monthly m JOIN tbl_users u ON u.id = m.user_id WHERE u.status = 1 GROUP BY m.user_id) s, (SELECT @user_rank := 0) init ORDER BY s.score DESC, s.last_updated ASC)";
+            $sub_query = "(SELECT s.*, ROW_NUMBER() OVER (ORDER BY s.score DESC, s.last_updated ASC) AS user_rank FROM (SELECT m.id, m.user_id, u.email, u.name, u.profile, SUM(m.score) AS score, MAX(m.last_updated) AS last_updated FROM tbl_leaderboard_monthly m JOIN tbl_users u ON u.id = m.user_id WHERE u.status = 1 GROUP BY m.id, m.user_id, u.email, u.name, u.profile) s)";
             $this->db->select('r.*');
             $this->db->from("$sub_query r", false);
 
@@ -2034,6 +2029,8 @@ class Api extends REST_Controller
                 $today = new DateTime('now', new DateTimeZone($timezone));
                 $today_date = $today->format('Y-m-d H:i:00');
                 $gmt_format = $this->post('gmt_format') ? $this->post('gmt_format') : $this->systemTimezoneGMT;
+                // Whitelist timezone format to prevent SQL injection (allow letters, digits, /, _, -, +, :)
+                $gmt_format = preg_replace('/[^A-Za-z0-9\/_\-+:]/', '', $gmt_format);
 
                 $toDateTime = (new DateTime("now", new DateTimeZone($timezone)))->format("Y-m-d H:i:00");
 
@@ -2041,9 +2038,9 @@ class Api extends REST_Controller
 
                 /* selecting live quiz ids */
                 if ($language_id) {
-                    $result = $this->db->query("SELECT id FROM tbl_contest WHERE status=1 AND language_id = $language_id AND (CONVERT_TZ('" . $toDateTime . "', '+00:00', '" . $gmt_format . "') BETWEEN CONVERT_TZ(start_date, '+00:00', '" . $gmt_format . "') AND CONVERT_TZ(end_date, '+00:00', '" . $gmt_format . "'))")->result_array();
+                    $result = $this->db->query("SELECT id FROM tbl_contest WHERE status=1 AND language_id = $language_id AND ('" . $toDateTime . "'::timestamp AT TIME ZONE 'UTC' AT TIME ZONE '" . $gmt_format . "' BETWEEN start_date AT TIME ZONE 'UTC' AT TIME ZONE '" . $gmt_format . "' AND end_date AT TIME ZONE 'UTC' AT TIME ZONE '" . $gmt_format . "')")->result_array();
                 } else {
-                    $result = $this->db->query("SELECT id FROM tbl_contest WHERE status=1 AND (CONVERT_TZ('" . $toDateTime . "', '+00:00', '" . $gmt_format . "') BETWEEN CONVERT_TZ(start_date, '+00:00', '" . $gmt_format . "') AND CONVERT_TZ(end_date, '+00:00', '" . $gmt_format . "'))")->result_array();
+                    $result = $this->db->query("SELECT id FROM tbl_contest WHERE status=1 AND ('" . $toDateTime . "'::timestamp AT TIME ZONE 'UTC' AT TIME ZONE '" . $gmt_format . "' BETWEEN start_date AT TIME ZONE 'UTC' AT TIME ZONE '" . $gmt_format . "' AND end_date AT TIME ZONE 'UTC' AT TIME ZONE '" . $gmt_format . "')")->result_array();
                 }
 
 
@@ -2283,7 +2280,7 @@ class Api extends REST_Controller
                 $sort = 'r.user_rank';
                 $order = 'ASC';
 
-                $sub_query = "SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT c.*,u.name,u.profile FROM tbl_contest_leaderboard c join tbl_users u on u.id = c.user_id where u.status=1 AND contest_id='" . $contest_id . "') s, (SELECT @user_rank := 0) init ORDER BY score DESC,last_updated ASC";
+                $sub_query = "SELECT s.*, ROW_NUMBER() OVER (ORDER BY s.score DESC, s.last_updated ASC) AS user_rank FROM ( SELECT c.*, u.name, u.profile FROM tbl_contest_leaderboard c JOIN tbl_users u ON u.id = c.user_id WHERE u.status=1 AND c.contest_id='" . $contest_id . "') s";
 
                 $this->db->select('r.*');
                 $this->db->from("($sub_query) r");
@@ -3176,15 +3173,17 @@ class Api extends REST_Controller
                 $offset = ($this->post('offset') && is_numeric($this->post('offset'))) ? $this->post('offset') : 0;
                 $limit = ($this->post('limit') && is_numeric($this->post('limit'))) ? $this->post('limit') : 5;
 
-                $sort = ($this->post('sort')) ? $this->post('sort') : 'id';
-                $order = ($this->post('order')) ? $this->post('order') : 'DESC';
+                $allowed_sort = ['id', 'date_created', 'winner_id', 'is_drawn'];
+                $allowed_order = ['ASC', 'DESC'];
+                $sort = in_array($this->post('sort'), $allowed_sort) ? $this->post('sort') : 'id';
+                $order = in_array(strtoupper($this->post('order')), $allowed_order) ? strtoupper($this->post('order')) : 'DESC';
 
-                $result = $this->db->query("SELECT (SELECT COUNT(*) FROM (SELECT DISTINCT date_created from tbl_battle_statistics WHERE winner_id = $user_id)as w ) AS Victories, (SELECT COUNT(*) FROM (SELECT DISTINCT `date_created` from tbl_battle_statistics WHERE (user_id1= $user_id || user_id2= $user_id)AND is_drawn=1)as d) AS Drawn, (SELECT COUNT(*) FROM (SELECT DISTINCT `date_created` from tbl_battle_statistics WHERE (user_id1= $user_id || user_id2= $user_id) AND winner_id != $user_id and is_drawn = 0)as l )AS Loose")->result_array();
+                $result = $this->db->query("SELECT (SELECT COUNT(*) FROM (SELECT DISTINCT date_created FROM tbl_battle_statistics WHERE winner_id = $user_id) AS w) AS Victories, (SELECT COUNT(*) FROM (SELECT DISTINCT date_created FROM tbl_battle_statistics WHERE (user_id1= $user_id OR user_id2= $user_id) AND is_drawn=1) AS d) AS Drawn, (SELECT COUNT(*) FROM (SELECT DISTINCT date_created FROM tbl_battle_statistics WHERE (user_id1= $user_id OR user_id2= $user_id) AND winner_id != $user_id AND is_drawn = 0) AS l) AS Loose")->result_array();
                 $response['myreport'] = $result;
 
                 $matches = $temp = array();
 
-                $result = $this->db->query("SELECT *, (select name from tbl_users u WHERE u.id = m.user_id1 ) as user_1, (select name from tbl_users u WHERE u.id = m.user_id2 ) as user_2, (select profile from tbl_users u WHERE u.id = m.user_id1 ) as user_profile1, (select profile from tbl_users u WHERE u.id = m.user_id2 ) as user_profile2 FROM tbl_battle_statistics m where user_id1 = $user_id or user_id2 = $user_id GROUP BY DATE(date_created) ORDER BY $sort $order limit $offset,$limit")->result_array();
+                $result = $this->db->query("SELECT *, (SELECT name FROM tbl_users u WHERE u.id = m.user_id1) AS user_1, (SELECT name FROM tbl_users u WHERE u.id = m.user_id2) AS user_2, (SELECT profile FROM tbl_users u WHERE u.id = m.user_id1) AS user_profile1, (SELECT profile FROM tbl_users u WHERE u.id = m.user_id2) AS user_profile2 FROM tbl_battle_statistics m WHERE user_id1 = $user_id OR user_id2 = $user_id GROUP BY m.id, m.user_id1, m.user_id2, m.winner_id, m.is_drawn, m.date_created ORDER BY $sort $order LIMIT $limit OFFSET $offset")->result_array();
                 if (!empty($result)) {
                     foreach ($result as $row) {
                         $temp['opponent_id'] = ($row['user_id1'] == $user_id) ? $row['user_id2'] : $row['user_id1'];
@@ -3246,9 +3245,11 @@ class Api extends REST_Controller
                 $today = new DateTime('now', new DateTimeZone($timezone));
                 $today_date = $today->format('Y-m-d');
                 $gmt_format = $this->post('gmt_format') ? $this->post('gmt_format') : $this->systemTimezoneGMT;
+                // Whitelist timezone format to prevent SQL injection (allow letters, digits, /, _, -, +, :)
+                $gmt_format = preg_replace('/[^A-Za-z0-9\/_\-+:]/', '', $gmt_format);
 
                 if ($type == 1 || $type == '1') {
-                    $this->db->select('te.*,DATE_FORMAT(CONVERT_TZ(te.date, "+00:00", "' . $gmt_format . '"), "%Y-%m-%d") AS converted_date, (select count(id) from tbl_exam_module_question q where q.exam_module_id=te.id ) as no_of_que, (select SUM(marks) from tbl_exam_module_question q where q.exam_module_id=te.id ) as total_marks');
+                    $this->db->select("te.*, TO_CHAR(te.date AT TIME ZONE 'UTC' AT TIME ZONE '" . $gmt_format . "', 'YYYY-MM-DD') AS converted_date, (select count(id) from tbl_exam_module_question q where q.exam_module_id=te.id) as no_of_que, (select SUM(marks) from tbl_exam_module_question q where q.exam_module_id=te.id) as total_marks", false);
                     if ($this->post('id')) {
                         $id = $this->post('id');
                         $this->db->where('id', $id);
@@ -3258,7 +3259,7 @@ class Api extends REST_Controller
                         $this->db->where('language_id', $language_id);
                     }
                     $this->db->where('status', 1);
-                    $this->db->where("DATE(CONVERT_TZ(date, '+00:00', '" . $gmt_format . "')) =", $today_date);
+                    $this->db->where("(te.date AT TIME ZONE 'UTC' AT TIME ZONE '" . $gmt_format . "')::date =", $today_date);
 
                     $this->db->order_by('id', 'DESC');
                     $data = $this->db->get('tbl_exam_module te')->result_array();
@@ -3487,7 +3488,7 @@ class Api extends REST_Controller
 
                 $this->db->where('user_id1', $user_id)->delete('tbl_battle_statistics');
                 $this->db->where('user_id2', $user_id)->delete('tbl_battle_statistics');
-                $this->db->query("UPDATE tbl_notifications SET user_id = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', user_id, ','), '," . $user_id . ",', ',')) WHERE type = 'selected' AND FIND_IN_SET('$user_id', user_id) > 0");
+                $this->db->query("UPDATE tbl_notifications SET user_id = TRIM(',' FROM REPLACE(',' || user_id || ',', '," . $user_id . ",', ',')) WHERE type = 'selected' AND '" . $user_id . "' = ANY(string_to_array(user_id, ',')::int[])");
                 $this->db->where('id', $user_id)->delete('tbl_users');
 
                 $response['error'] = false;
@@ -5578,7 +5579,7 @@ class Api extends REST_Controller
     {
         $checkData = $this->db->where('match_id', $match_id)
             ->where('0 IN (set_user1, set_user2)', null, false)
-            ->where("NOT FIND_IN_SET($user_id, CONCAT(set_user1, ',', set_user2))", null, false)
+            ->where("NOT ($user_id = ANY(ARRAY[set_user1, set_user2]))", null, false)
             ->get('tbl_battle_questions')->row_array();
         if ($checkData) {
             $userData = json_decode($playQuestions, true);
@@ -5726,7 +5727,7 @@ class Api extends REST_Controller
     {
         $checkData = $this->db->where('match_id', $match_id)
             ->where('0 IN (set_user1, set_user2)', null, false)
-            ->where("NOT FIND_IN_SET($user_id, CONCAT(set_user1, ',', set_user2))", null, false)
+            ->where("NOT ($user_id = ANY(ARRAY[set_user1, set_user2]))", null, false)
             ->get('tbl_battle_questions')->row_array();
         if ($checkData) {
             $userData = json_decode($playQuestions, true);
@@ -5893,7 +5894,7 @@ class Api extends REST_Controller
 
         $checkData = $this->db->where('room_id', $room_id)
             ->where('0 IN (set_user1, set_user2, set_user3, set_user4)', null, false)
-            ->where("NOT FIND_IN_SET($user_id, CONCAT(set_user1, ',', set_user2, ',', set_user3, ',', set_user4))", null, false)
+            ->where("NOT ($user_id = ANY(ARRAY[set_user1, set_user2, set_user3, set_user4]))", null, false)
             ->get('tbl_rooms')->row_array();
         if ($checkData) {
             $userData = json_decode($playQuestions, true);
@@ -6900,7 +6901,7 @@ class Api extends REST_Controller
         $year = date('Y', strtotime($this->toDate));
 
         // set data in mothly leaderboard
-        $data_m = $this->db->where('user_id', $user_id)->where('MONTH(date_created)', $month)->where('YEAR(date_created)', $year)->get('tbl_leaderboard_monthly')->row_array();
+        $data_m = $this->db->where('user_id', $user_id)->where('EXTRACT(MONTH FROM date_created) =', (int)$month)->where('EXTRACT(YEAR FROM date_created) =', (int)$year)->get('tbl_leaderboard_monthly')->row_array();
         if (!empty($data_m)) {
             $old1 = $data_m['score'];
             $new1 = $old1 + $score;
@@ -6923,7 +6924,7 @@ class Api extends REST_Controller
         // set data in daily leaderboard
         $data_d = $this->db->where('user_id', $user_id)->get('tbl_leaderboard_daily')->row_array();
         if (!empty($data_d)) {
-            $data_d1 = $this->db->where('user_id', $user_id)->where('DATE(date_created)', $this->toDate)->get('tbl_leaderboard_daily')->row_array();
+            $data_d1 = $this->db->where('user_id', $user_id)->where('date_created::date', $this->toDate)->get('tbl_leaderboard_daily')->row_array();
             if (!empty($data_d1)) {
                 $old = $data_d1['score'];
                 $new = $old + $score;
@@ -7145,7 +7146,7 @@ class Api extends REST_Controller
     {
         $this->db->reset_query();
         $this->db->select('r.*');
-        $this->db->from("(SELECT s.*, @user_rank := @user_rank + 1 AS user_rank FROM (SELECT m.id, m.user_id,u.email, u.name,u.status,u.profile, SUM(m.score) AS score,MAX(last_updated) as last_updated FROM tbl_leaderboard_monthly m JOIN tbl_users u ON u.id = m.user_id WHERE u.status=1 GROUP BY m.user_id) s, (SELECT @user_rank := 0) init ORDER BY s.score DESC,s.last_updated ASC) r", false);
+        $this->db->from("(SELECT s.*, ROW_NUMBER() OVER (ORDER BY s.score DESC, s.last_updated ASC) AS user_rank FROM (SELECT m.id, m.user_id, u.email, u.name, u.status, u.profile, SUM(m.score) AS score, MAX(m.last_updated) AS last_updated FROM tbl_leaderboard_monthly m JOIN tbl_users u ON u.id = m.user_id WHERE u.status=1 GROUP BY m.id, m.user_id, u.email, u.name, u.status, u.profile) s) r", false);
         $this->db->where('r.user_id', $user_id);
         $this->db->limit(1);
         $my_rank_sql = $this->db->get();
