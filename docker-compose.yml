@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   elite_quiz_admin:
-    image: ghcr.io/${GHCR_OWNER:-your-org}/elite-quiz-admin:${TAG:-latest}
+    image: ghcr.io/${GHCR_OWNER:-josemaeldon}/elite-quiz-admin:${TAG:-latest}
     build:
       context: ./elite_quiz_admin
       dockerfile: Dockerfile
@@ -23,7 +23,7 @@ services:
         - traefik.http.services.elite_quiz_admin.loadbalancer.server.port=80
 
   elite_quiz_web:
-    image: ghcr.io/${GHCR_OWNER:-your-org}/elite-quiz-web:${TAG:-latest}
+    image: ghcr.io/${GHCR_OWNER:-josemaeldon}/elite-quiz-web:${TAG:-latest}
     build:
       context: ./elite_quiz_web
       dockerfile: Dockerfile

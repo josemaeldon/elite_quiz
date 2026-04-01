@@ -15,8 +15,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  ADMIN_IMAGE: ${{ env.REGISTRY }}/${{ github.repository_owner }}/elite-quiz-admin
-  WEB_IMAGE: ${{ env.REGISTRY }}/${{ github.repository_owner }}/elite-quiz-web
 
 jobs:
   build-and-push:
@@ -40,13 +38,13 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata for admin image
         id: admin_meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.ADMIN_IMAGE }}
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/elite-quiz-admin
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -56,7 +54,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push admin image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./elite_quiz_admin
           file: ./elite_quiz_admin/Dockerfile
@@ -71,7 +69,7 @@ jobs:
         id: web_meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.WEB_IMAGE }}
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/elite-quiz-web
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -81,7 +79,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push web image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./elite_quiz_web
           file: ./elite_quiz_web/Dockerfile
