@@ -23,6 +23,14 @@ class BattleRoom extends REST_Controller
         return $code;
     }
 
+    private function generate_uuid()
+    {
+        $data = random_bytes(16);
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+    }
+
     public function create_post()
     {
         try {
@@ -33,7 +41,11 @@ class BattleRoom extends REST_Controller
             $metadata = $this->post('metadata') ? json_encode($this->post('metadata')) : null;
             $room_code = $this->post('room_code') ?: $this->random_room_code();
 
+            // Generate UUID in PHP for PostgreSQL
+            $room_id = $this->generate_uuid();
+
             $room = [
+                'id' => $room_id,
                 'owner_id' => $owner_id,
                 'category_id' => $category_id,
                 'entry_coin' => $entry_coin,
@@ -45,7 +57,6 @@ class BattleRoom extends REST_Controller
                 'updated_at' => date('Y-m-d H:i:s'),
             ];
             $this->db->insert('battle_rooms', $room);
-            $room_id = $this->db->insert_id();
 
             $participant = [
                 'room_id' => $room_id,

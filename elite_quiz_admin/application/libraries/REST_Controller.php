@@ -690,6 +690,7 @@ abstract class REST_Controller extends \CI_Controller {
                     $this->config->item('rest_status_field_name') => FALSE,
                     $this->config->item('rest_message_field_name') => $this->lang->line('text_rest_unknown_method')
                 ], self::HTTP_METHOD_NOT_ALLOWED);
+            return;
         }
 
         // Doing key related stuff? Can only do it if they have a key right?

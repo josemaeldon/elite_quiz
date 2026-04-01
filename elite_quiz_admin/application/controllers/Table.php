@@ -862,7 +862,7 @@ class Table extends REST_Controller
 
         $contest_id = $this->get('contest_id');
 
-        $sub_query = "SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT c.*,u.name FROM tbl_contest_leaderboard c join tbl_users u on u.id = c.user_id where u.status=1 AND contest_id='" . $contest_id . "') s, (SELECT @user_rank := 0) init ORDER BY score DESC,last_updated ASC";
+        $sub_query = "SELECT s.*, ROW_NUMBER() OVER (ORDER BY s.score DESC, s.last_updated ASC) AS user_rank FROM ( SELECT c.*, u.name FROM tbl_contest_leaderboard c JOIN tbl_users u ON u.id = c.user_id WHERE u.status=1 AND c.contest_id='" . $contest_id . "') s";
 
         $this->db->select('r.*');
         $this->db->from("($sub_query) r");
@@ -1431,7 +1431,7 @@ class Table extends REST_Controller
 
         $exam_module_id = $this->get('exam_module_id');
 
-        $sub_query = "SELECT emr.*, u.id AS u_id, u.name AS u_name, @user_rank := @user_rank + 1 AS user_rank FROM (SELECT * FROM tbl_exam_module_result WHERE exam_module_id = $exam_module_id) emr LEFT JOIN tbl_users u ON u.id = emr.user_id,(SELECT @user_rank := 0) init WHERE u.status=1 ORDER BY CAST(obtained_marks AS SIGNED) DESC, CAST(total_duration AS SIGNED) ASC";
+        $sub_query = "SELECT emr.*, u.id AS u_id, u.name AS u_name, ROW_NUMBER() OVER (ORDER BY CAST(obtained_marks AS NUMERIC) DESC, CAST(total_duration AS NUMERIC) ASC) AS user_rank FROM (SELECT * FROM tbl_exam_module_result WHERE exam_module_id = $exam_module_id) emr LEFT JOIN tbl_users u ON u.id = emr.user_id WHERE u.status=1";
 
         $this->db->select('r.*');
         $this->db->from("($sub_query) r");
@@ -1857,7 +1857,7 @@ class Table extends REST_Controller
         $sort = $this->get('sort') ?? 'r.user_rank';
         $order = $this->get('order') ?? 'ASC';
 
-        $sub_query = "(SELECT s.*, @user_rank := @user_rank + 1 AS user_rank FROM (SELECT m.id, m.user_id,u.email, u.name, SUM(m.score) AS score,MAX(m.last_updated) as last_updated FROM tbl_leaderboard_monthly m JOIN tbl_users u ON u.id = m.user_id WHERE u.status = 1 GROUP BY m.user_id) s, (SELECT @user_rank := 0) init ORDER BY s.score DESC, s.last_updated ASC)";
+        $sub_query = "(SELECT s.*, ROW_NUMBER() OVER (ORDER BY s.score DESC, s.last_updated ASC) AS user_rank FROM (SELECT m.id, m.user_id, u.email, u.name, SUM(m.score) AS score, MAX(m.last_updated) AS last_updated FROM tbl_leaderboard_monthly m JOIN tbl_users u ON u.id = m.user_id WHERE u.status = 1 GROUP BY m.id, m.user_id, u.email, u.name) s)";
         $this->db->select('r.*');
         $this->db->from("$sub_query r", false);
 
@@ -1906,14 +1906,7 @@ class Table extends REST_Controller
         $sort = $this->get('sort') ?? 'r.user_rank';
         $order = $this->get('order') ?? 'ASC';
 
-        $this->db->select('d.id, user_id, u.email, u.name,score, date_created, @user_rank := @user_rank + 1 AS user_rank', false);
-        $this->db->from("(SELECT @user_rank := 0) init, tbl_leaderboard_daily d");
-        $this->db->join('tbl_users u', 'u.id = d.user_id');
-        $this->db->where('u.status', 1);
-        $this->db->where('DATE(date_created)', $this->toDate);
-        $this->db->order_by('score', 'DESC');
-        $this->db->order_by('date_created', 'ASC');
-        $subQuery = $this->db->get_compiled_select();
+        $subQuery = "SELECT d.id, d.user_id, u.email, u.name, d.score, d.date_created, ROW_NUMBER() OVER (ORDER BY d.score DESC, d.date_created ASC) AS user_rank FROM tbl_leaderboard_daily d JOIN tbl_users u ON u.id = d.user_id WHERE u.status = 1 AND d.date_created::date = '" . $this->toDate . "'";
 
         $this->db->select('r.*');
         $this->db->from("($subQuery) r");
@@ -1966,7 +1959,7 @@ class Table extends REST_Controller
         $year = $this->get('year');
         $month = $this->get('month');
 
-        $sub_query = "SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT m.id, user_id,u.email, u.name, SUM(score) as score,date_created, MAX(last_updated) as last_updated FROM tbl_leaderboard_monthly m join tbl_users u on u.id = m.user_id WHERE u.status=1 AND YEAR(last_updated)=$year AND MONTH(last_updated)=$month AND u.status=1 GROUP BY user_id) s, (SELECT @user_rank := 0) init ORDER BY score DESC, last_updated ASC";
+        $sub_query = "SELECT s.*, ROW_NUMBER() OVER (ORDER BY s.score DESC, s.last_updated ASC) AS user_rank FROM ( SELECT m.id, m.user_id, u.email, u.name, SUM(m.score) AS score, m.date_created, MAX(m.last_updated) AS last_updated FROM tbl_leaderboard_monthly m JOIN tbl_users u ON u.id = m.user_id WHERE u.status=1 AND EXTRACT(YEAR FROM m.last_updated)=$year AND EXTRACT(MONTH FROM m.last_updated)=$month GROUP BY m.id, m.user_id, u.email, u.name, m.date_created) s";
 
         $this->db->select('r.*,');
         $this->db->from("($sub_query) r");

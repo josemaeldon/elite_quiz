@@ -118,7 +118,7 @@ class Contest extends CI_Controller
                                 $u_rank = $res1[$j]->top_winner;
                                 $winner_points = $res1[$j]->points;
 
-                                $query2 = $this->db->query("SELECT r.*, u.firebase_id, u.coins FROM (SELECT s.*, @user_rank := @user_rank + 1 user_rank FROM ( SELECT user_id, score FROM tbl_contest_leaderboard c join tbl_users u on u.id = c.user_id WHERE contest_id='" . $contest_id . "' ) s, (SELECT @user_rank := 0) init ORDER BY score DESC ) r INNER join tbl_users u on u.id = r.user_id WHERE r.user_rank='" . $u_rank . "' ORDER BY r.user_rank ASC");
+                                $query2 = $this->db->query("SELECT r.*, u.coins FROM (SELECT s.*, ROW_NUMBER() OVER (ORDER BY s.score DESC) AS user_rank FROM ( SELECT user_id, score FROM tbl_contest_leaderboard c JOIN tbl_users u ON u.id = c.user_id WHERE contest_id='" . $contest_id . "') s) r INNER JOIN tbl_users u ON u.id = r.user_id WHERE r.user_rank='" . $u_rank . "' ORDER BY r.user_rank ASC");
                                 $res2 = $query2->result();
 
                                 for ($i = 0; $i < count($res2); $i++) {
