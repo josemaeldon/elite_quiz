@@ -30,16 +30,6 @@
                                     <div class="card-body mt-4">
                                         <form method="post" class="needs-validation" novalidate="" enctype="multipart/form-data">
                                             <input type="hidden" name="<?= $this->security->get_csrf_token_name(); ?>" value="<?= $this->security->get_csrf_hash(); ?>">
-                                            <?php
-                                            $quiz_url = $_SERVER['HTTP_HOST'] . str_replace(basename($_SERVER['SCRIPT_NAME']), "", $_SERVER['SCRIPT_NAME']);
-                                            ?>
-                                            <input type="hidden" name="quiz_url" value="<?= $quiz_url; ?>" required />
-                                            <div class="row">
-                                                <div class="form-group col-md-6 col-sm-12">
-                                                    <label class="control-label"><?= lang('purchase_code'); ?></label>
-                                                    <input type="text" name="purchase_code" placeholder="<?= lang('enter_purchase_code'); ?>" class="form-control" />
-                                                </div>
-                                            </div>
                                             <div class="row">
                                                 <div class="form-group col-md-6 col-sm-12">
                                                     <label class="control-label"><?= lang('update_zip'); ?> <small class="text-danger"><?= lang('only_zip_file_allow'); ?></small></label>

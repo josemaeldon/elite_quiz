@@ -71,100 +71,80 @@ class System_Update extends CI_Controller
                             $this->session->set_flashdata('error', lang(PERMISSION_ERROR_MSG));
                         } else {
                             if ($_FILES['file']['name'] != '') {
-                                $purchase_code = $this->input->post('purchase_code');
-                                $quiz_url = $_SERVER['HTTP_HOST'] . str_replace(basename($_SERVER['SCRIPT_NAME']), "", $_SERVER['SCRIPT_NAME']);
-                                $curl = curl_init();
-                                curl_setopt_array($curl, array(
-                                    CURLOPT_URL => 'https://validator.wrteam.in/flutter_quiz_validator?purchase_code=' . $purchase_code . '&domain_url=' . $quiz_url,
-                                    CURLOPT_RETURNTRANSFER => true,
-                                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                                    CURLOPT_CUSTOMREQUEST => 'GET',
-                                ));
-                                $response = curl_exec($curl);
-                                $response = json_decode($response, 1);
-                                if ((is_resource($curl) && get_resource_type($curl) === 'curl') || (class_exists('CurlHandle') && $curl instanceof CurlHandle)) {
-                                    curl_close($curl);
+                                $tmp_path = FCPATH . 'images/tmp/';
+                                $target_path = FCPATH;
+                                if (!is_dir($tmp_path)) {
+                                    mkdir($tmp_path, 0777, TRUE);
                                 }
-                                if ($response["error"] == false) {
-                                    $tmp_path = FCPATH . 'images/tmp/';
-                                    $target_path = FCPATH;
-                                    if (!is_dir($tmp_path)) {
-                                        mkdir($tmp_path, 0777, TRUE);
-                                    }
-                                    $config = [
-                                        'upload_path'   => $tmp_path,
-                                        'allowed_types' => 'zip|rar',
-                                        'file_name'     => $_FILES['file']['name'],
-                                    ];
-                                    $this->load->library('upload', $config);
-                                    $this->upload->initialize($config);
-                                    if ($this->upload->do_upload('file')) {
-                                        $uploadData = $this->upload->data();
-                                        $fileName = $uploadData['file_name'];
-                                        clearstatcache();
-                                        $zip = new ZipArchive();
-                                        $filePath = $tmp_path . '/' . $fileName;
-                                        $zipFile = $zip->open($filePath);
-                                        if ($zipFile === true) {
-                                            $zip->extractTo($tmp_path);
-                                            $zip->close();
-                                            unlink($filePath);
-                                            $ver_file1 = $tmp_path . 'version_info.php';
-                                            $source_path1 = $tmp_path . 'source_code.zip';
-                                            $sql_file1 = $tmp_path . 'database.sql';
-                                            if (file_exists($ver_file1) && file_exists($source_path1) && file_exists($sql_file1)) {
-                                                $ver_file = $target_path . 'version_info.php';
-                                                $source_path = $target_path . 'source_code.zip';
-                                                $sql_file = $target_path . 'database.sql';
-                                                if (rename($ver_file1, $ver_file) && rename($source_path1, $source_path) && rename($sql_file1, $sql_file)) {
-                                                    $version_file = require($ver_file);
-                                                    $res = $this->db->where('type', 'system_version')->get('tbl_settings')->row_array();
-                                                    $current_version = $res['message'] ?? '';
-                                                    if ($current_version == $version_file['current_version']) {
-                                                        clearstatcache();
-                                                        $zip1 = new ZipArchive();
-                                                        $zipFile1 = $zip1->open($source_path);
-                                                        if ($zipFile1 === true) {
-                                                            $zip1->extractTo($target_path);
-                                                            $zip1->close();
-                                                            if (file_exists($sql_file)) {
-                                                                $lines = file($sql_file);
-                                                                for ($i = 0; $i < count($lines); $i++) {
-                                                                    if (!empty($lines[$i])) {
-                                                                        $this->db->query($lines[$i]);
-                                                                    }
+                                $config = [
+                                    'upload_path'   => $tmp_path,
+                                    'allowed_types' => 'zip|rar',
+                                    'file_name'     => $_FILES['file']['name'],
+                                ];
+                                $this->load->library('upload', $config);
+                                $this->upload->initialize($config);
+                                if ($this->upload->do_upload('file')) {
+                                    $uploadData = $this->upload->data();
+                                    $fileName = $uploadData['file_name'];
+                                    clearstatcache();
+                                    $zip = new ZipArchive();
+                                    $filePath = $tmp_path . '/' . $fileName;
+                                    $zipFile = $zip->open($filePath);
+                                    if ($zipFile === true) {
+                                        $zip->extractTo($tmp_path);
+                                        $zip->close();
+                                        unlink($filePath);
+                                        $ver_file1 = $tmp_path . 'version_info.php';
+                                        $source_path1 = $tmp_path . 'source_code.zip';
+                                        $sql_file1 = $tmp_path . 'database.sql';
+                                        if (file_exists($ver_file1) && file_exists($source_path1) && file_exists($sql_file1)) {
+                                            $ver_file = $target_path . 'version_info.php';
+                                            $source_path = $target_path . 'source_code.zip';
+                                            $sql_file = $target_path . 'database.sql';
+                                            if (rename($ver_file1, $ver_file) && rename($source_path1, $source_path) && rename($sql_file1, $sql_file)) {
+                                                $version_file = require($ver_file);
+                                                $res = $this->db->where('type', 'system_version')->get('tbl_settings')->row_array();
+                                                $current_version = $res['message'] ?? '';
+                                                if ($current_version == $version_file['current_version']) {
+                                                    clearstatcache();
+                                                    $zip1 = new ZipArchive();
+                                                    $zipFile1 = $zip1->open($source_path);
+                                                    if ($zipFile1 === true) {
+                                                        $zip1->extractTo($target_path);
+                                                        $zip1->close();
+                                                        if (file_exists($sql_file)) {
+                                                            $lines = file($sql_file);
+                                                            for ($i = 0; $i < count($lines); $i++) {
+                                                                if (!empty($lines[$i])) {
+                                                                    $this->db->query($lines[$i]);
                                                                 }
                                                             }
-                                                            unlink($source_path);
-                                                            unlink($ver_file);
-                                                            unlink($sql_file);
-                                                            $frm_data = ['message' => $version_file['update_version']];
-                                                            $this->db->where('type', 'system_version')->update('tbl_settings', $frm_data);
-                                                            $this->session->set_flashdata('success', lang('system_update_successfully'));
-                                                            redirect('system-updates');
-                                                        } else {
-                                                            unlink($source_path);
-                                                            unlink($ver_file);
-                                                            unlink($sql_file);
-                                                            $this->session->set_flashdata('error', lang('something_wrong_please_try_again'));
-                                                            redirect('system-updates');
                                                         }
-                                                    } else if ($current_version == $version_file['update_version']) {
                                                         unlink($source_path);
                                                         unlink($ver_file);
                                                         unlink($sql_file);
-                                                        $this->session->set_flashdata('error', lang('system_is_alreay_updated'));
+                                                        $frm_data = ['message' => $version_file['update_version']];
+                                                        $this->db->where('type', 'system_version')->update('tbl_settings', $frm_data);
+                                                        $this->session->set_flashdata('success', lang('system_update_successfully'));
                                                         redirect('system-updates');
                                                     } else {
                                                         unlink($source_path);
                                                         unlink($ver_file);
                                                         unlink($sql_file);
-                                                        $this->session->set_flashdata('error', lang('your_version_is') . ' ' . $current_version . '.' . lang('please_update_nearest_version_first'));
+                                                        $this->session->set_flashdata('error', lang('something_wrong_please_try_again'));
                                                         redirect('system-updates');
                                                     }
+                                                } else if ($current_version == $version_file['update_version']) {
+                                                    unlink($source_path);
+                                                    unlink($ver_file);
+                                                    unlink($sql_file);
+                                                    $this->session->set_flashdata('error', lang('system_is_alreay_updated'));
+                                                    redirect('system-updates');
                                                 } else {
-                                                    $this->DeleteDir($tmp_path);
-                                                    $this->session->set_flashdata('error', lang('invalid_file_please_try_again'));
+                                                    unlink($source_path);
+                                                    unlink($ver_file);
+                                                    unlink($sql_file);
+                                                    $this->session->set_flashdata('error', lang('your_version_is') . ' ' . $current_version . '.' . lang('please_update_nearest_version_first'));
                                                     redirect('system-updates');
                                                 }
                                             } else {
@@ -174,16 +154,17 @@ class System_Update extends CI_Controller
                                             }
                                         } else {
                                             $this->DeleteDir($tmp_path);
-                                            $this->session->set_flashdata('error',  lang('something_wrong_please_try_again'));
+                                            $this->session->set_flashdata('error', lang('invalid_file_please_try_again'));
                                             redirect('system-updates');
                                         }
                                     } else {
-                                        log_message('error', $this->upload->display_errors());
-                                        $this->session->set_flashdata('error',  lang('only_zip_allow_please_try_again'));
+                                        $this->DeleteDir($tmp_path);
+                                        $this->session->set_flashdata('error',  lang('something_wrong_please_try_again'));
                                         redirect('system-updates');
                                     }
                                 } else {
-                                    $this->session->set_flashdata('error', $response["message"]);
+                                    log_message('error', $this->upload->display_errors());
+                                    $this->session->set_flashdata('error',  lang('only_zip_allow_please_try_again'));
                                     redirect('system-updates');
                                 }
                             } else {
