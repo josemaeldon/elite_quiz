@@ -1,27 +1,63 @@
 <?php
+/**
+ * CodeIgniter
+ *
+ * An open source application development framework for PHP
+ *
+ * This content is released under the MIT License (MIT)
+ *
+ * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @package	CodeIgniter
+ * @author	EllisLab Dev Team
+ * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
+ * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
+ * @license	https://opensource.org/licenses/MIT	MIT License
+ * @link	https://codeigniter.com
+ * @since	Version 1.0.0
+ * @filesource
+ */
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-$lang['db_invalid_connection_str'] = 'Não foi possível determinar as configurações do banco de dados a partir da string de conexão enviada.';
-$lang['db_unable_to_connect'] = 'Não foi possível conectar ao servidor de banco de dados usando as configurações fornecidas.';
-$lang['db_unable_to_select'] = 'Não foi possível selecionar o banco de dados especificado: %s';
-$lang['db_unable_to_create'] = 'Não foi possível criar o banco de dados especificado: %s';
-$lang['db_invalid_query'] = 'A consulta enviada não é válida.';
-$lang['db_must_set_table'] = 'Você deve definir a tabela que será usada na consulta.';
-$lang['db_must_use_set'] = 'Você deve usar o método "set" para atualizar um registro.';
-$lang['db_must_use_index'] = 'Você deve especificar um índice para atualização em lote.';
-$lang['db_batch_missing_index'] = 'Uma ou mais linhas enviadas para atualização em lote não contém o índice especificado.';
-$lang['db_must_use_where'] = 'Atualizações não são permitidas sem uma cláusula "where".';
-$lang['db_del_must_use_where'] = 'Exclusões não são permitidas sem uma cláusula "where" ou "like".';
-$lang['db_field_param_missing'] = 'Para recuperar campos é necessário informar o nome da tabela como parâmetro.';
-$lang['db_unsupported_function'] = 'Este recurso não está disponível para o banco de dados usado.';
-$lang['db_transaction_failure'] = 'Falha na transação: rollback executado.';
-$lang['db_unable_to_drop'] = 'Não foi possível excluir o banco de dados especificado.';
-$lang['db_unsupported_feature'] = 'Recurso não suportado pela plataforma do banco de dados.';
-$lang['db_unsupported_compression'] = 'O formato de compactação escolhido não é suportado pelo servidor.';
-$lang['db_filepath_error'] = 'Não foi possível gravar dados no caminho de arquivo enviado.';
-$lang['db_invalid_cache_path'] = 'O caminho do cache enviado não é válido ou não é gravável.';
-$lang['db_table_name_required'] = 'É obrigatório informar o nome da tabela para esta operação.';
-$lang['db_column_name_required'] = 'É obrigatório informar o nome da coluna para esta operação.';
-$lang['db_column_definition_required'] = 'É necessário informar a definição da coluna para esta operação.';
-$lang['db_unable_to_set_charset'] = 'Não foi possível definir o conjunto de caracteres da conexão cliente: %s';
-$lang['db_error_heading'] = 'Ocorreu um erro no Banco de Dados';
+$lang['db_invalid_connection_str'] = 'Unable to determine the database settings based on the connection string you submitted.';
+$lang['db_unable_to_connect'] = 'Unable to connect to your database server using the provided settings.';
+$lang['db_unable_to_select'] = 'Unable to select the specified database: %s';
+$lang['db_unable_to_create'] = 'Unable to create the specified database: %s';
+$lang['db_invalid_query'] = 'The query you submitted is not valid.';
+$lang['db_must_set_table'] = 'Você deve definir a tabela do banco de dados a ser usada com sua consulta.';
+$lang['db_must_use_set'] = 'You must use the "set" method to update an entry.';
+$lang['db_must_use_index'] = 'You must specify an index to match on for batch updates.';
+$lang['db_batch_missing_index'] = 'One or more rows submitted for batch updating is missing the specified index.';
+$lang['db_must_use_where'] = 'As atualizações não são permitidas, a menos que contenham uma cláusula "where".';
+$lang['db_del_must_use_where'] = 'Deletes are not allowed unless they contain a "where" or "like" clause.';
+$lang['db_field_param_missing'] = 'To fetch fields requires the name of the table as a parameter.';
+$lang['db_unsupported_function'] = 'This feature is not available for the database you are using.';
+$lang['db_transaction_failure'] = 'Transaction failure: Rollback performed.';
+$lang['db_unable_to_drop'] = 'Unable to drop the specified database.';
+$lang['db_unsupported_feature'] = 'Recurso não suportado da plataforma de banco de dados que você está usando.';
+$lang['db_unsupported_compression'] = 'The file compression format you chose is not supported by your server.';
+$lang['db_filepath_error'] = 'Não foi possível gravar dados no caminho do arquivo enviado.';
+$lang['db_invalid_cache_path'] = 'The cache path you submitted is not valid or writable.';
+$lang['db_table_name_required'] = 'A table name is required for that operation.';
+$lang['db_column_name_required'] = 'Um nome de coluna é necessário para essa operação.';
+$lang['db_column_definition_required'] = 'A column definition is required for that operation.';
+$lang['db_unable_to_set_charset'] = 'Unable to set client connection character set: %s';
+$lang['db_error_heading'] = 'A Database Error Occurred';
