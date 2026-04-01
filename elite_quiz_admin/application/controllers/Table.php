@@ -1446,7 +1446,7 @@ class Table extends REST_Controller
         }
 
         $total = $this->db->count_all_results('', false);
-        $this->db->order_by("CAST($sort AS SIGNED)", $order);
+        $this->db->order_by("CAST($sort AS NUMERIC)", $order);
 
         if ($this->get('limit')) {
             $offset = $this->get('offset');

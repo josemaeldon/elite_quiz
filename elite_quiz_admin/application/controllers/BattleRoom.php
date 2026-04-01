@@ -23,6 +23,10 @@ class BattleRoom extends REST_Controller
         return $code;
     }
 
+    /**
+     * Generate a version 4 (random) UUID.
+     * Sets version bits (0x40) and variant bits (0x80) per RFC 4122.
+     */
     private function generate_uuid()
     {
         $data = random_bytes(16);

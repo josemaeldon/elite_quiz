@@ -1379,6 +1379,8 @@ class Api extends REST_Controller
                 $today = new DateTime('now', new DateTimeZone($timezone));
                 $today_date = $today->format('Y-m-d');
                 $gmt_format = $this->post('gmt_format') ? $this->post('gmt_format') : $this->systemTimezoneGMT;
+                // Whitelist timezone format to prevent SQL injection (allow letters, digits, /, _, -, +, :)
+                $gmt_format = preg_replace('/[^A-Za-z0-9\/_\-+:]/', '', $gmt_format);
 
                 $res1 = $this->db->where("(date AT TIME ZONE 'UTC' AT TIME ZONE '" . $gmt_format . "')::date =", $today_date)->where('user_id', $user_id)->get('tbl_daily_quiz_user')->row_array();
                 if (empty($res1)) {
@@ -2027,6 +2029,8 @@ class Api extends REST_Controller
                 $today = new DateTime('now', new DateTimeZone($timezone));
                 $today_date = $today->format('Y-m-d H:i:00');
                 $gmt_format = $this->post('gmt_format') ? $this->post('gmt_format') : $this->systemTimezoneGMT;
+                // Whitelist timezone format to prevent SQL injection (allow letters, digits, /, _, -, +, :)
+                $gmt_format = preg_replace('/[^A-Za-z0-9\/_\-+:]/', '', $gmt_format);
 
                 $toDateTime = (new DateTime("now", new DateTimeZone($timezone)))->format("Y-m-d H:i:00");
 
@@ -3169,8 +3173,10 @@ class Api extends REST_Controller
                 $offset = ($this->post('offset') && is_numeric($this->post('offset'))) ? $this->post('offset') : 0;
                 $limit = ($this->post('limit') && is_numeric($this->post('limit'))) ? $this->post('limit') : 5;
 
-                $sort = ($this->post('sort')) ? $this->post('sort') : 'id';
-                $order = ($this->post('order')) ? $this->post('order') : 'DESC';
+                $allowed_sort = ['id', 'date_created', 'winner_id', 'is_drawn'];
+                $allowed_order = ['ASC', 'DESC'];
+                $sort = in_array($this->post('sort'), $allowed_sort) ? $this->post('sort') : 'id';
+                $order = in_array(strtoupper($this->post('order')), $allowed_order) ? strtoupper($this->post('order')) : 'DESC';
 
                 $result = $this->db->query("SELECT (SELECT COUNT(*) FROM (SELECT DISTINCT date_created FROM tbl_battle_statistics WHERE winner_id = $user_id) AS w) AS Victories, (SELECT COUNT(*) FROM (SELECT DISTINCT date_created FROM tbl_battle_statistics WHERE (user_id1= $user_id OR user_id2= $user_id) AND is_drawn=1) AS d) AS Drawn, (SELECT COUNT(*) FROM (SELECT DISTINCT date_created FROM tbl_battle_statistics WHERE (user_id1= $user_id OR user_id2= $user_id) AND winner_id != $user_id AND is_drawn = 0) AS l) AS Loose")->result_array();
                 $response['myreport'] = $result;
@@ -3239,6 +3245,8 @@ class Api extends REST_Controller
                 $today = new DateTime('now', new DateTimeZone($timezone));
                 $today_date = $today->format('Y-m-d');
                 $gmt_format = $this->post('gmt_format') ? $this->post('gmt_format') : $this->systemTimezoneGMT;
+                // Whitelist timezone format to prevent SQL injection (allow letters, digits, /, _, -, +, :)
+                $gmt_format = preg_replace('/[^A-Za-z0-9\/_\-+:]/', '', $gmt_format);
 
                 if ($type == 1 || $type == '1') {
                     $this->db->select("te.*, TO_CHAR(te.date AT TIME ZONE 'UTC' AT TIME ZONE '" . $gmt_format . "', 'YYYY-MM-DD') AS converted_date, (select count(id) from tbl_exam_module_question q where q.exam_module_id=te.id) as no_of_que, (select SUM(marks) from tbl_exam_module_question q where q.exam_module_id=te.id) as total_marks", false);
