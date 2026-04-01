@@ -1,43 +1,93 @@
-name: Publish GHCR images
+name: Build and Push Docker Images
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - master
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
 
 env:
-  GHCR_OWNER: ${{ github.repository_owner }}
-  TAG: ${{ github.sha }}
+  REGISTRY: ghcr.io
+  ADMIN_IMAGE: ${{ env.REGISTRY }}/${{ github.repository_owner }}/elite-quiz-admin
+  WEB_IMAGE: ${{ env.REGISTRY }}/${{ github.repository_owner }}/elite-quiz-web
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
 
-      - name: Build & push admin image
+      - name: Extract metadata for admin image
+        id: admin_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.ADMIN_IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push admin image
         uses: docker/build-push-action@v5
         with:
           context: ./elite_quiz_admin
           file: ./elite_quiz_admin/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/${{ env.GHCR_OWNER }}/elite-quiz-admin:latest
-            ghcr.io/${{ env.GHCR_OWNER }}/elite-quiz-admin:${{ env.TAG }}
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.admin_meta.outputs.tags }}
+          labels: ${{ steps.admin_meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Build & push web image
+      - name: Extract metadata for web image
+        id: web_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.WEB_IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push web image
         uses: docker/build-push-action@v5
         with:
           context: ./elite_quiz_web
           file: ./elite_quiz_web/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/${{ env.GHCR_OWNER }}/elite-quiz-web:latest
-            ghcr.io/${{ env.GHCR_OWNER }}/elite-quiz-web:${{ env.TAG }}
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.web_meta.outputs.tags }}
+          labels: ${{ steps.web_meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
