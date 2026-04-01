@@ -2,11 +2,10 @@
 
 import { store } from '@/store/store';
 import axios from 'axios';
+import getConfig from 'next/config';
 
-// Create Axios instance
-const api = axios.create({
-  baseURL: `${process.env.NEXT_PUBLIC_BASE_URL}/api/`,
-});
+// Create Axios instance (baseURL set dynamically per request via interceptor)
+const api = axios.create();
 
 // Function to get stored token
 const getStoredToken = async () => {
@@ -18,6 +17,15 @@ const getStoredToken = async () => {
 api.interceptors.request.use(
   async (config) => {
     try {
+      // Resolve base URL at request time to pick up publicRuntimeConfig loaded by the
+      // docker entrypoint from the persistent /var/lib/elite_quiz_web/.env.runtime file.
+      const { publicRuntimeConfig } = getConfig() || {};
+      const baseURL =
+        publicRuntimeConfig?.NEXT_PUBLIC_BASE_URL ||
+        process.env.NEXT_PUBLIC_BASE_URL ||
+        '';
+      config.baseURL = `${baseURL}/api/`;
+
       const token = await getStoredToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;

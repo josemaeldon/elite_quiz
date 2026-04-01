@@ -21,5 +21,8 @@ COPY --from=builder /app/jsconfig.json ./
 COPY --from=builder /app/postcss.config.mjs ./
 COPY --from=builder /app/tailwind.config.mjs ./
 COPY --from=builder /app/scripts ./scripts
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 EXPOSE 3000
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["npm", "run", "start"]

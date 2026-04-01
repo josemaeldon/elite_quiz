@@ -2,6 +2,12 @@
 // error_reporting(0);
 $db_config_path = '../application/config/database.php';
 
+// Block access if already installed (flag persists on the Docker volume)
+if (file_exists('/var/lib/elite_quiz_admin/.installed')) {
+    header('Location: /');
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST) {
 
     require_once('taskClass.php');
