@@ -271,7 +271,7 @@ const BattleRoomPanel = ({
     });
     setPending(false);
     if (response?.error) {
-      setError(response.message || t("unable_to_create_room"));
+      setError(response.message || t("unable_to_start_battle") || t("unable_to_create_room"));
     }
   };
 

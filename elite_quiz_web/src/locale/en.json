@@ -489,5 +489,6 @@
   "go_to_login": "Go to login",
   "entry_coin": "Entry Coin",
   "random_battle_description": "Create a room, invite your friends and start a battle!",
-  "start_battle": "Start Battle"
+  "start_battle": "Start Battle",
+  "unable_to_start_battle": "Unable to start battle"
 }

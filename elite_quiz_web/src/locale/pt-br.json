@@ -489,5 +489,6 @@
   "go_to_login": "Ir para o login",
   "entry_coin": "Moeda de Entrada",
   "random_battle_description": "Crie uma sala, convide seus amigos e comece uma batalha!",
-  "start_battle": "Iniciar Batalha"
+  "start_battle": "Iniciar Batalha",
+  "unable_to_start_battle": "Não foi possível iniciar a batalha"
 }

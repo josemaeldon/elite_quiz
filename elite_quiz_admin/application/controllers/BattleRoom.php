@@ -217,6 +217,11 @@ class BattleRoom extends REST_Controller
                 return $this->response(['error' => true, 'message' => 'Missing data'], REST_Controller::HTTP_OK);
             }
 
+            // Validate room_id is a valid UUID format
+            if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $room_id)) {
+                return $this->response(['error' => true, 'message' => 'Invalid room_id format'], REST_Controller::HTTP_OK);
+            }
+
             $room = $this->db->where('id', $room_id)->get('battle_rooms')->row_array();
             if (empty($room)) {
                 return $this->response(['error' => true, 'message' => 'Room not found'], REST_Controller::HTTP_OK);
