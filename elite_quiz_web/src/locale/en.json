@@ -473,5 +473,22 @@
   "find_app_msg": "You can find it in your {{location}} and open it directly from there for the best experience.",
   "home_screen": "home screen",
   "desktop_start_menu": "desktop or Start menu",
-  "got_it": "Got it!"
+  "got_it": "Got it!",
+  "room_info": "Room Info",
+  "room_id": "Room ID",
+  "status": "Status",
+  "waiting_for_players": "Waiting for players...",
+  "unable_to_create_room": "Unable to create room",
+  "unable_to_join": "Unable to join room",
+  "unable_to_send_message": "Unable to send message",
+  "empty_message": "Empty message",
+  "no_messages_yet": "No messages yet",
+  "write_message": "Write a message",
+  "participants": "Participants",
+  "chat": "Chat",
+  "go_to_login": "Go to login",
+  "entry_coin": "Entry Coin",
+  "random_battle_description": "Create a room, invite your friends and start a battle!",
+  "start_battle": "Start Battle",
+  "unable_to_start_battle": "Unable to start battle"
 }

@@ -169,6 +169,22 @@ export const getBattleState = async ({ room_id }) => {
   }
 };
 
+export const startBattleRoomApi = async ({ room_id, owner_id }) => {
+  try {
+    const formData = new FormData();
+    formData.append("room_id", room_id);
+    formData.append("owner_id", owner_id);
+    const response = await api.post(apiEndPoints.startBattleRoomApi, formData);
+    if (response.status !== 200) {
+      throw new Error("Failed to start battle room");
+    }
+    return response?.data;
+  } catch (error) {
+    console.error("startBattleRoomApi error:", error);
+    return { error: true, message: error.message };
+  }
+};
+
 //get language from storage
 export const getLanguage = async () => {
   let language = store.getState().Languages.currentLanguage;

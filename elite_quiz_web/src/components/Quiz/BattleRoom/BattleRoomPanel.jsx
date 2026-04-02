@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { t } from "@/utils";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { QRCodeSVG } from "qrcode.react";
 import {
   createBattleRoomApi,
@@ -11,7 +11,11 @@ import {
   joinBattleRoomApi,
   joinBattleRoomByCodeApi,
   sendBattleMessage,
+  startBattleRoomApi,
 } from "@/api/apiRoutes";
+import { tempdataSuccess } from "@/store/reducers/tempDataSlice";
+import { groupbattleSuccess } from "@/store/reducers/groupbattleSlice";
+import { useRouter } from "next/router";
 
 const parsePayload = (payload) => {
   if (!payload) return {};
@@ -36,6 +40,8 @@ const BattleRoomPanel = ({
 }) => {
   const user = useSelector((state) => state.User?.data);
   const isLoggedIn = useSelector((state) => state.User?.isLogin);
+  const dispatch = useDispatch();
+  const router = useRouter();
   const [room, setRoom] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -111,6 +117,17 @@ const BattleRoomPanel = ({
     }
   };
 
+  const handleRoomStartedEvent = (event) => {
+    const payload = parseStreamPayload(event);
+    if (payload) {
+      setRoom(payload);
+      const roomCategoryId = payload.category_id ?? defaultCategory;
+      dispatch(tempdataSuccess({ data: { room_id: payload.room_id ?? payload.id, category_id: roomCategoryId } }));
+      dispatch(groupbattleSuccess({ key: "entryFee", value: payload.entry_coin ?? 0 }));
+      router.push("/random-battle/random-play");
+    }
+  };
+
   const fetchState = async () => {
     if (!roomId) return;
     const response = await getBattleState({ room_id: roomId });
@@ -158,6 +175,7 @@ const BattleRoomPanel = ({
       source.addEventListener("room_created", handleRoomEvent);
       source.addEventListener("participant_joined", handleParticipantEvent);
       source.addEventListener("message", handleMessageEvent);
+      source.addEventListener("room_started", handleRoomStartedEvent);
       source.onerror = (streamError) => {
         console.error("Erro no stream de batalha", streamError);
       };
@@ -243,6 +261,20 @@ const BattleRoomPanel = ({
     });
   };
 
+  const handleStart = async () => {
+    if (!roomId || !isLoggedIn) return;
+    setPending(true);
+    setError(null);
+    const response = await startBattleRoomApi({
+      room_id: roomId,
+      owner_id: user?.id,
+    });
+    setPending(false);
+    if (response?.error) {
+      setError(response.message || t("unable_to_start_battle") || t("unable_to_create_room"));
+    }
+  };
+
   const handleSend = async () => {
     if (!roomId || !payload.trim()) return;
     setPending(true);
@@ -296,6 +328,11 @@ const BattleRoomPanel = ({
             {roomId && (
               <Button variant="outline" onClick={handleJoin} loading={pending}>
                 {t("join_room")}
+              </Button>
+            )}
+            {roomId && room?.status === "waiting" && room?.owner_id === user?.id && (
+              <Button variant="login" onClick={handleStart} loading={pending}>
+                {t("start_battle")}
               </Button>
             )}
           </div>

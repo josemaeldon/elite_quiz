@@ -1404,7 +1404,7 @@ class Api extends REST_Controller
 
                         $questions = $res['questions_id'];
                         $questionData = [];
-                        $result = $this->db->query("SELECT * FROM tbl_question WHERE id IN (" . $questions . ") ORDER BY FIELD(id," . $questions . ")")->result_array();
+                        $result = $this->db->query("SELECT * FROM tbl_question WHERE id IN (" . $questions . ") ORDER BY array_position(ARRAY[" . $questions . "]::int[], id)")->result_array();
                         if (!empty($result)) {
                             for ($i = 0; $i < count($result); $i++) {
                                 $result[$i]['image'] = ($result[$i]['image']) ? base_url() . QUESTION_IMG_PATH . $result[$i]['image'] : '';

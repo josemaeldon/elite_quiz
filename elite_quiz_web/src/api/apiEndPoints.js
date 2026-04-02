@@ -120,6 +120,7 @@ export const joinBattleRoomByCodeApi = "BattleRoom/join_by_code";
 export const sendBattleMessageApi = "BattleRoom/messages";
 export const getBattleMessagesApi = "BattleRoom/messages";
 export const getBattleStateApi = "BattleRoom/state";
+export const startBattleRoomApi = "BattleRoom/start";
 
 //update user coin and score
 export const setQuizCoinScoreApi = "set_quiz_coin_score";

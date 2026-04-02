@@ -207,6 +207,52 @@ class BattleRoom extends REST_Controller
         }
     }
 
+    public function start_post()
+    {
+        try {
+            $room_id = $this->post('room_id');
+            $owner_id = (int) $this->post('owner_id');
+
+            if (!$room_id || !$owner_id) {
+                return $this->response(['error' => true, 'message' => 'Missing data'], REST_Controller::HTTP_OK);
+            }
+
+            // Validate room_id is a valid UUID format
+            if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $room_id)) {
+                return $this->response(['error' => true, 'message' => 'Invalid room_id format'], REST_Controller::HTTP_OK);
+            }
+
+            $room = $this->db->where('id', $room_id)->get('battle_rooms')->row_array();
+            if (empty($room)) {
+                return $this->response(['error' => true, 'message' => 'Room not found'], REST_Controller::HTTP_OK);
+            }
+
+            if ((int) $room['owner_id'] !== $owner_id) {
+                return $this->response(['error' => true, 'message' => 'Only the room owner can start the battle'], REST_Controller::HTTP_OK);
+            }
+
+            if ($room['status'] !== 'waiting') {
+                return $this->response(['error' => true, 'message' => 'Room is not in waiting status'], REST_Controller::HTTP_OK);
+            }
+
+            $this->db->where('id', $room_id)->update('battle_rooms', [
+                'status' => 'active',
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+
+            $updatedRoom = $this->db->where('id', $room_id)->get('battle_rooms')->row_array();
+            $updatedRoom['room_id'] = $room_id;
+            if (!empty($updatedRoom['metadata'])) {
+                $updatedRoom['metadata'] = json_decode($updatedRoom['metadata'], true);
+            }
+            $this->pushRoomEvent($room_id, 'room_started', $updatedRoom);
+
+            $this->response(['error' => false, 'data' => $updatedRoom], REST_Controller::HTTP_OK);
+        } catch (Exception $e) {
+            $this->response(['error' => true, 'message' => 'Start failed', 'error_msg' => $e->getMessage()], REST_Controller::HTTP_OK);
+        }
+    }
+
     public function messages_get()
     {
         $room_id = $this->get('room_id');

@@ -473,5 +473,22 @@
   "find_app_msg": "Você pode encontrá-lo em seu {{location}} e abri-lo diretamente de lá para ter a melhor experiência.",
   "home_screen": "tela inicial",
   "desktop_start_menu": "área de trabalho ou menu Iniciar",
-  "got_it": "Entendi!"
+  "got_it": "Entendi!",
+  "room_info": "Informações da Sala",
+  "room_id": "ID da Sala",
+  "status": "Status",
+  "waiting_for_players": "Aguardando jogadores...",
+  "unable_to_create_room": "Não foi possível criar a sala",
+  "unable_to_join": "Não foi possível entrar na sala",
+  "unable_to_send_message": "Não foi possível enviar a mensagem",
+  "empty_message": "Mensagem vazia",
+  "no_messages_yet": "Nenhuma mensagem ainda",
+  "write_message": "Escreva uma mensagem",
+  "participants": "Participantes",
+  "chat": "Chat",
+  "go_to_login": "Ir para o login",
+  "entry_coin": "Moeda de Entrada",
+  "random_battle_description": "Crie uma sala, convide seus amigos e comece uma batalha!",
+  "start_battle": "Iniciar Batalha",
+  "unable_to_start_battle": "Não foi possível iniciar a batalha"
 }
