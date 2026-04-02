@@ -679,7 +679,7 @@ class Api extends REST_Controller
 
             $this->db->select('id,title,message,users,type,type_id,image,date_sent')
                 ->from('tbl_notifications n')
-                ->where('n.date_sent::date >=', $register_date)
+                ->where('(n.date_sent)::date >=', $register_date)
                 ->group_start()
                 ->where('n.users', 'all')
                 ->or_where('(' . $user_id . ' = ANY(string_to_array(n.user_id, \',\')::int[]))', null, false)
@@ -690,7 +690,7 @@ class Api extends REST_Controller
 
             $this->db->select('COUNT(*) as total')
                 ->from('tbl_notifications n')
-                ->where('n.date_sent::date >=', $register_date)
+                ->where('(n.date_sent)::date >=', $register_date)
                 ->group_start()
                 ->where('n.users', 'all')
                 ->or_where('(' . $user_id . ' = ANY(string_to_array(n.user_id, \',\')::int[]))', null, false)
@@ -1137,7 +1137,7 @@ class Api extends REST_Controller
 
                 $maxlevel = '';
                 if ($type == 1 || $type == 6) {
-                    $maxlevel = ',(CASE WHEN (SELECT COUNT(s.id) FROM tbl_subcategory s WHERE s.maincat_id = c.id AND s.status = 1 AND s.id IN (SELECT DISTINCT subcategory FROM ' . $tbl . ' WHERE subcategory != 0 )) = 0 THEN (SELECT MAX(CAST(level AS UNSIGNED)) FROM ' . $tbl . ' q WHERE q.category = c.id) ELSE 0 END) AS maxlevel';
+                    $maxlevel = ',(CASE WHEN (SELECT COUNT(s.id) FROM tbl_subcategory s WHERE s.maincat_id = c.id AND s.status = 1 AND s.id IN (SELECT DISTINCT subcategory FROM ' . $tbl . ' WHERE subcategory != 0 )) = 0 THEN (SELECT MAX(CAST(level AS INTEGER)) FROM ' . $tbl . ' q WHERE q.category = c.id) ELSE 0 END) AS maxlevel';
                 }
 
                 $has_unlocked = '';
