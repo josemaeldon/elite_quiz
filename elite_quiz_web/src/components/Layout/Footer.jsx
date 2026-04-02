@@ -175,23 +175,27 @@ const Footer = () => {
               </address>
               <div className="flex flex-wrap items-center gap-10 pt-6">
                 {SocialMedia &&
-                  SocialMedia.map((data, index) => (
-                    <Link
-                      key={index}
-                      href={data?.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="transition-transform hover:scale-110 rounded-full border border-white p-[2px]"
-                      aria-label={`Visit our ${data?.link.split('.')[1]} page`}
-                    >
-                      <img
-                        src={getImageSource(data?.icon)}
-                        alt={`${data?.link.split('.')[1]} icon`}
-                        className="w-6 h-6"
-                        loading="lazy"
-                      />
-                    </Link>
-                  ))}
+                  SocialMedia.map((data, index) => {
+                    const cleanLink = data?.link?.replace(/\\/g, '') || '#';
+                    const siteName = cleanLink.split('.')[1] || '';
+                    return (
+                      <Link
+                        key={index}
+                        href={cleanLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="transition-transform hover:scale-110 rounded-full border border-white p-[2px]"
+                        aria-label={`Visit our ${siteName} page`}
+                      >
+                        <img
+                          src={getImageSource(data?.icon)}
+                          alt={`${siteName} icon`}
+                          className="w-6 h-6"
+                          loading="lazy"
+                        />
+                      </Link>
+                    );
+                  })}
               </div>
             </div>
           </div>
@@ -203,7 +207,7 @@ const Footer = () => {
               {t("copyright")} &copy; {new Date().getFullYear()} {t("made_by")}{" "}
               {web_link_footer ? (
                 <Link
-                  href={web_link_footer}
+                  href={web_link_footer?.replace(/\\/g, '') || web_link_footer}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-300 hover:text-white transition-colors duration-200 underline"
