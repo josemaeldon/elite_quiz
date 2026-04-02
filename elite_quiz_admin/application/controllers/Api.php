@@ -4212,6 +4212,7 @@ class Api extends REST_Controller
                         if (!empty($message)) {
                             foreach ($message as $key => $value) {
                                 $value->icon = ($value->icon) ? base_url() . WEB_SETTINGS_LOGO_PATH . $value->icon : '';
+                                $value->link = stripslashes($value->link ?? '');
                             }
                         }
                     } else {
