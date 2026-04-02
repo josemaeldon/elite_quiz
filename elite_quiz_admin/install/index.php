@@ -34,28 +34,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST) {
         } elseif ($admin_password !== $admin_confirm) {
             $message = $core->show_message('error', 'Admin passwords do not match.');
         } else {
-            if ($core->write_config($_POST) == false) {
-                $message = $core->show_message('error', "The database configuration file could not be written, please chmod application/config/database.php file to 755");
-            }
-            if ($database->create_tables($_POST) == false) {
-                $message = $core->show_message('error', "The database could not be created, make sure your the host, username, password, database name is correct.");
-            }
-            if ($core->checkFile() == false) {
-                $message = $core->show_message('error', "File application/config/database.php is Empty");
-            }
-            if (!isset($message)) {
-                $urlWb = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-                $urlWb = str_replace('install/index.php', '', $urlWb);
-                $urlWb = str_replace('install/', '', $urlWb);
-                $core->delete_directory('../install/');
+            $overwrite_db = $_POST['overwrite_db'] ?? '';
+
+            // Check whether the target database already contains tables
+            $db_has_tables = $database->database_has_tables($_POST);
+
+            if ($db_has_tables === true && $overwrite_db === '') {
+                // Database already exists – ask the user what to do
+                $db_exists_prompt = true;
+                $message = $core->show_message('warning', 'A database already exists at the specified location. Please choose how to proceed below.');
+            } else {
+                if ($core->write_config($_POST) == false) {
+                    $message = $core->show_message('error', "The database configuration file could not be written, please chmod application/config/database.php file to 755");
+                }
+
+                if ($overwrite_db === 'keep') {
+                    // Keep the existing database as-is; only the config needs to be written
+                } else {
+                    // 'replace' or fresh install – import the schema
+                    $overwrite = ($overwrite_db === 'replace');
+                    if ($database->create_tables($_POST, $overwrite) == false) {
+                        $message = $core->show_message('error', "The database could not be created, make sure your the host, username, password, database name is correct.");
+                    }
+                }
+
+                if ($core->checkFile() == false) {
+                    $message = $core->show_message('error', "File application/config/database.php is Empty");
+                }
+                if (!isset($message)) {
+                    $urlWb = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+                    $urlWb = str_replace('install/index.php', '', $urlWb);
+                    $urlWb = str_replace('install/', '', $urlWb);
+                    $core->delete_directory('../install/');
 ?>
                 <script type="text/javascript">
                     $('#install_form').hide();
                 </script>
 <?php
-                $type = 'success';
-                $message = $core->show_message('success', 'Congrats! Installation is successful. Please wait redirecting you to the main page in seconds.. .');
-                header('Refresh:5; url=' . $urlWb);
+                    $type = 'success';
+                    $message = $core->show_message('success', 'Congrats! Installation is successful. Please wait redirecting you to the main page in seconds.. .');
+                    header('Refresh:5; url=' . $urlWb);
+                }
             }
         }
     } else {
@@ -92,6 +111,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST) {
                                 <div class="alert alert-success alert-dismissible" role="alert">
                                     <?= $message; ?>
                                 </div>
+                            <?php } elseif (isset($db_exists_prompt) && $db_exists_prompt) { ?>
+                                <div class="alert alert-warning" role="alert">
+                                    <strong>Database Already Exists</strong><br>
+                                    <?= $message; ?>
+                                </div>
+                                <form method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>">
+                                    <?php foreach (['hostname','port','database','username','password','admin_username','admin_password','admin_confirm_password'] as $field): ?>
+                                        <input type="hidden" name="<?= htmlspecialchars($field); ?>" value="<?= htmlspecialchars($_POST[$field] ?? ''); ?>">
+                                    <?php endforeach; ?>
+                                    <div class="form-group">
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" name="overwrite_db" id="overwrite_keep" value="keep" checked>
+                                            <label class="form-check-label" for="overwrite_keep">
+                                                <strong>Keep existing database</strong> — preserve all current data and only write the configuration file.
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="overwrite_db" id="overwrite_replace" value="replace">
+                                            <label class="form-check-label" for="overwrite_replace">
+                                                <strong>Replace with new database</strong> — <span class="text-danger">drop all existing data</span> and import a fresh schema.
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Continue</button>
+                                </form>
                             <?php } else { ?>
                                 <div class="alert alert-danger alert-dismissible" role="alert">
                                     <?= $message; ?>
