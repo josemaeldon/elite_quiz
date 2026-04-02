@@ -6,7 +6,7 @@ class Check_installer {
         if (file_exists(FCPATH . 'install/index.php')) {
             // If the system is already installed, skip the installer redirect.
             // This handles cases where an update package re-extracts the install/ directory.
-            if (file_exists('/var/lib/elite_quiz_admin/.installed')) {
+            if (file_exists(PERSISTENT_DIR . '/.installed')) {
                 return;
             }
             $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';

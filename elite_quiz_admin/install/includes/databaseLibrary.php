@@ -47,6 +47,28 @@ class Database
             return false;
         }
 
+        // Insert the super administrator account
+        $admin_username = substr(trim($data['admin_username'] ?? ''), 0, 12);
+        $admin_password = $data['admin_password'] ?? '';
+        if ($admin_username !== '' && $admin_password !== '') {
+            // Allow only alphanumeric characters and underscores for the username
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $admin_username)) {
+                error_log('Installer: invalid admin username characters');
+                return false;
+            }
+            $admin_pass_hash = password_hash($admin_password, PASSWORD_DEFAULT);
+            $now = date('Y-m-d H:i:s');
+            $stmt = $pdo->prepare(
+                "INSERT INTO tbl_authenticate (auth_username, auth_pass, role, permissions, status, language, created)
+                 VALUES (:username, :pass, 'admin', '', 1, 'english', :created)"
+            );
+            $stmt->execute([
+                ':username' => $admin_username,
+                ':pass'     => $admin_pass_hash,
+                ':created'  => $now,
+            ]);
+        }
+
         return true;
     }
 }

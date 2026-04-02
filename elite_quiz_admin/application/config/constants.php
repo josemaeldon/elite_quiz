@@ -125,6 +125,9 @@ define('LANGUAGE_ALLOWED_TYPES', 'PHP|php');
 define('MULTIMATCH_QUESTION_IMG_PATH', 'images/multimatch-questions/');
 define('INSTRACTION_IMG_PATH', 'images/instruction/');
 
+// Persistent directory used to store database config and installation flag across container rebuilds
+define('PERSISTENT_DIR', '/var/lib/elite_quiz_admin');
+
 //audio path
 define('QUESTION_AUDIO_PATH', 'images/audio/');
 define('AUDIO_ALLOWED_TYPES', 'mp3|mp4|ogv|wav|aac|msv|wav|wma|ogg|MP3|MP4|OGV|WAV|AAC|MSV|WAV|WMA|OGG');

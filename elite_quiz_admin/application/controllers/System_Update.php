@@ -118,7 +118,7 @@ class System_Update extends CI_Controller
                                                         $zip1->close();
 
                                                         // Restore database config: prefer persistent volume copy, fall back to pre-update backup
-                                                        $persistent_config = '/var/lib/elite_quiz_admin/database.php';
+                                                        $persistent_config = PERSISTENT_DIR . '/database.php';
                                                         if (file_exists($persistent_config)) {
                                                             @copy($persistent_config, $app_config_path);
                                                         } elseif ($db_config_backup !== null) {
