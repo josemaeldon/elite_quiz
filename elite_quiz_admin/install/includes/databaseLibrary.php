@@ -3,7 +3,7 @@
 class Database
 {
 
-    function create_tables($data)
+    private function connect($data)
     {
         $servername = $data['hostname'];
         $username   = $data['username'];
@@ -15,7 +15,7 @@ class Database
         if (!preg_match('/^[a-zA-Z0-9._\-]+$/', $servername) ||
             !preg_match('/^[a-zA-Z0-9_\-]+$/', $database) ||
             $port < 1 || $port > 65535) {
-            return false;
+            return null;
         }
 
         $dsn = "pgsql:host={$servername};port={$port};dbname={$database}";
@@ -24,8 +24,47 @@ class Database
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_TIMEOUT => 5,
             ]);
+            return $pdo;
         } catch (PDOException $e) {
             error_log('Installer: DB connection failed: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Returns true if the target database already has tables, false otherwise.
+     * Returns null if the connection could not be established.
+     */
+    function database_has_tables($data)
+    {
+        $pdo = $this->connect($data);
+        if ($pdo === null) {
+            return null;
+        }
+
+        try {
+            $stmt = $pdo->query(
+                "SELECT COUNT(*) FROM information_schema.tables
+                  WHERE table_schema = 'public' AND table_type = 'BASE TABLE'"
+            );
+            $count = (int) $stmt->fetchColumn();
+            return $count > 0;
+        } catch (PDOException $e) {
+            error_log('Installer: table check failed: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Creates the database tables and the initial admin account.
+     *
+     * @param array $data      Form data (hostname, username, password, database, port, admin_*)
+     * @param bool  $overwrite When true, the existing schema is dropped before import.
+     */
+    function create_tables($data, $overwrite = false)
+    {
+        $pdo = $this->connect($data);
+        if ($pdo === null) {
             return false;
         }
 
@@ -41,6 +80,9 @@ class Database
         }
 
         try {
+            if ($overwrite) {
+                $pdo->exec("DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO public;");
+            }
             $pdo->exec($query);
         } catch (PDOException $e) {
             error_log('Installer: Schema execution failed: ' . $e->getMessage());

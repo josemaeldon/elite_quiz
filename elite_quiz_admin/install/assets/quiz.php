@@ -1303,7 +1303,7 @@ INSERT INTO `tbl_web_settings` (`id`, `language_id`, `type`, `message`) VALUES
 (2, 14, 'header_logo', 'header_logo-1679987557.svg'),
 (3, 14, 'footer_logo', 'footer_logo-1679987557.svg'),
 (4, 14, 'sticky_header_logo', 'sticky_header_logo-1679987557.svg'),
-(5, 14, 'quiz_zone_icon', 'quiz_zone_icon-1680083222.svg'),
+(5, 14, 'quiz_zone_icon', 'quiz_zone_icon-1749734767.svg'),
 (6, 14, 'daily_quiz_icon', 'daily_quiz_icon-1680083222.svg'),
 (7, 14, 'true_false_icon', 'true_false_icon-1680263423.svg'),
 (8, 14, 'fun_learn_icon', 'fun_learn_icon-1680083222.svg'),
