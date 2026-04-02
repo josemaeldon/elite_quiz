@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import dynamic from "next/dynamic";
 import { t } from "@/utils";
 import { useDispatch } from "react-redux";
+import Link from "next/link";
 
 const Layout = dynamic(() => import("@/components/Layout/Layout"), {
   ssr: false,
@@ -84,6 +85,12 @@ const Login = () => {
                   {loading ? t("please_wait") : t("login")}
                 </Button>
               </form>
+              <p className="text-center mt-6 text-sm">
+                {t("dont_have_acc")}{" "}
+                <Link href="/auth/sign-up/" className="text-[var(--primary)] font-semibold hover:underline">
+                  {t("sign_up")}
+                </Link>
+              </p>
             </div>
           </div>
         </div>
