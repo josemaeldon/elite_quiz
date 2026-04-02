@@ -2,83 +2,82 @@
 /**
  * CodeIgniter
  *
- * An open source application development framework for PHP
+ * Um framework de desenvolvimento de aplicações open source para PHP
  *
- * This content is released under the MIT License (MIT)
+ * Este conteúdo está sob a licença MIT (MIT)
  *
  * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Permissão é concedida, gratuitamente, a qualquer pessoa que obtenha uma cópia
+ * deste software e dos arquivos de documentação associados (o "Software"), para lidar
+ * com o Software sem restrição, incluindo, sem limitação, os direitos
+ * de usar, copiar, modificar, mesclar, publicar, distribuir, sublicenciar e/ou vender
+ * cópias do Software, e permitir que as pessoas a quem o Software é
+ * fornecido o façam, sujeito às seguintes condições:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * O aviso de copyright acima e este aviso de permissão devem ser incluídos em
+ * todas as cópias ou partes substanciais do Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * O SOFTWARE É FORNECIDO "COMO ESTÁ", SEM GARANTIA DE QUALQUER TIPO, EXPRESSA OU
+ * IMPLÍCITA, INCLUINDO, MAS NÃO SE LIMITANDO ÀS GARANTIAS DE COMERCIALIZAÇÃO,
+ * ADEQUAÇÃO A UM DETERMINADO FIM E NÃO VIOLAÇÃO. EM NENHUM CASO OS
+ * AUTORES OU DETENTORES DE DIREITOS AUTORAIS SERÃO RESPONSÁVEIS POR QUALQUER RECLAMAÇÃO, DANOS OU OUTROS
+ * RESPONSABILIDADE, SEJA EM UMA AÇÃO DE CONTRATO, ATO ILÍCITO OU DE OUTRA FORMA, DECORRENTE DE,
+ * FORA DE OU EM CONEXÃO COM O SOFTWARE OU O USO OU OUTRAS NEGOCIAÇÕES NO SOFTWARE.
  *
  * @package	CodeIgniter
- * @author	EllisLab Dev Team
+ * @author	Equipe EllisLab
  * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
  * @copyright	Copyright (c) 2014 - 2019, British Columbia Institute of Technology (https://bcit.ca/)
- * @license	https://opensource.org/licenses/MIT	MIT License
+ * @license	https://opensource.org/licenses/MIT	Licença MIT
  * @link	https://codeigniter.com
- * @since	Version 1.0.0
+ * @since	Versão 1.0.0
  * @filesource
  */
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') OR exit('Acesso direto ao script não é permitido');
 
-$lang['cal_su'] = 'Su';
-$lang['cal_mo'] = 'Mo';
-$lang['cal_tu'] = 'Tu';
-$lang['cal_we'] = 'We';
-$lang['cal_th'] = 'Th';
-$lang['cal_fr'] = 'Fr';
-$lang['cal_sa'] = 'Sa';
-$lang['cal_sun'] = 'Sun';
-$lang['cal_mon'] = 'Mon';
-$lang['cal_tue'] = 'Tue';
-$lang['cal_wed'] = 'Wed';
-$lang['cal_thu'] = 'Thu';
-$lang['cal_fri'] = 'Fri';
-$lang['cal_sat'] = 'Sat';
-$lang['cal_sunday'] = 'Sunday';
-$lang['cal_monday'] = 'Monday';
-$lang['cal_tuesday'] = 'Tuesday';
-$lang['cal_wednesday'] = 'Wednesday';
-$lang['cal_thursday'] = 'Thursday';
-$lang['cal_friday'] = 'Friday';
-$lang['cal_saturday'] = 'Saturday';
+$lang['cal_su'] = 'Do';
+$lang['cal_mo'] = 'Se';
+$lang['cal_tu'] = 'Te';
+$lang['cal_we'] = 'Qa';
+$lang['cal_th'] = 'Qi';
+$lang['cal_fr'] = 'Se';
+$lang['cal_sa'] = 'Sá';
+$lang['cal_sun'] = 'Dom';
+$lang['cal_mon'] = 'Seg';
+$lang['cal_tue'] = 'Ter';
+$lang['cal_wed'] = 'Qua';
+$lang['cal_thu'] = 'Qui';
+$lang['cal_fri'] = 'Sex';
+$lang['cal_sat'] = 'Sáb';
+$lang['cal_sunday'] = 'Domingo';
+$lang['cal_monday'] = 'Segunda-feira';
+$lang['cal_tuesday'] = 'Terça-feira';
+$lang['cal_wednesday'] = 'Quarta-feira';
+$lang['cal_thursday'] = 'Quinta-feira';
+$lang['cal_friday'] = 'Sexta-feira';
+$lang['cal_saturday'] = 'Sábado';
 $lang['cal_jan'] = 'Jan';
-$lang['cal_feb'] = 'Feb';
+$lang['cal_feb'] = 'Fev';
 $lang['cal_mar'] = 'Mar';
-$lang['cal_apr'] = 'Apr';
-$lang['cal_may'] = 'May';
+$lang['cal_apr'] = 'Abr';
+$lang['cal_may'] = 'Mai';
 $lang['cal_jun'] = 'Jun';
 $lang['cal_jul'] = 'Jul';
-$lang['cal_aug'] = 'Aug';
-$lang['cal_sep'] = 'Sep';
-$lang['cal_oct'] = 'Oct';
+$lang['cal_aug'] = 'Ago';
+$lang['cal_sep'] = 'Set';
+$lang['cal_oct'] = 'Out';
 $lang['cal_nov'] = 'Nov';
-$lang['cal_dec'] = 'Dec';
-$lang['cal_january'] = 'January';
-$lang['cal_february'] = 'February';
-$lang['cal_march'] = 'March';
-$lang['cal_april'] = 'April';
-$lang['cal_mayl'] = 'May';
-$lang['cal_june'] = 'June';
-$lang['cal_july'] = 'July';
-$lang['cal_august'] = 'August';
-$lang['cal_september'] = 'September';
-$lang['cal_october'] = 'October';
-$lang['cal_november'] = 'November';
-$lang['cal_december'] = 'December';
+$lang['cal_dec'] = 'Dez';
+$lang['cal_january'] = 'Janeiro';
+$lang['cal_february'] = 'Fevereiro';
+$lang['cal_march'] = 'Março';
+$lang['cal_april'] = 'Abril';
+$lang['cal_mayl'] = 'Maio';
+$lang['cal_june'] = 'Junho';
+$lang['cal_july'] = 'Julho';
+$lang['cal_august'] = 'Agosto';
+$lang['cal_september'] = 'Setembro';
+$lang['cal_october'] = 'Outubro';
+$lang['cal_november'] = 'Novembro';
+$lang['cal_december'] = 'Dezembro';
