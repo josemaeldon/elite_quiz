@@ -175,7 +175,7 @@ class Questions extends CI_Controller
             }
             $questions = $response = array();
             $questions = $data[0]->questions_id;
-            $query = $this->db->query("SELECT id, question FROM tbl_question WHERE id IN (" . $questions . ") ORDER BY FIELD(id," . $questions . ")");
+            $query = $this->db->query("SELECT id, question FROM tbl_question WHERE id IN (" . $questions . ") ORDER BY array_position(ARRAY[" . $questions . "]::int[], id)");
             $res = $query->result();
             foreach ($res as $question) {
                 $setquestion = (is_settings('latex_mode')) ? "<textarea class='editor-questions-inline'>" . $question->question . "</textarea>" : $question->question;

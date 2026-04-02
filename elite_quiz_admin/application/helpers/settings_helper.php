@@ -45,10 +45,16 @@ if (!function_exists('has_permissions')) {
         $role = trim($role);
         $module = trim($module);
 
+        $t = &get_instance();
+
+        //if user is superadmin then allow all permissions
+        if ($t->session->userdata('authName') == 'superadmin') {
+            return true;
+        }
+
         if (!is_modification_allowed($module) && in_array($role, ['create', 'update', 'delete'])) {
             return false; //Modification not allowed
         }
-        $t = &get_instance();
         $id = $t->session->userdata('authId');
         $t->load->config('quiz');
         $general_system_permissions = $t->config->item('system_modules');
