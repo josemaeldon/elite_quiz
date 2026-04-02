@@ -110,8 +110,27 @@ class System_Update extends CI_Controller
                                                     $zip1 = new ZipArchive();
                                                     $zipFile1 = $zip1->open($source_path);
                                                     if ($zipFile1 === true) {
+                                                        // Back up current database config before overwriting files
+                                                        $app_config_path = APPPATH . 'config/database.php';
+                                                        $db_config_backup = file_exists($app_config_path) ? file_get_contents($app_config_path) : null;
+
                                                         $zip1->extractTo($target_path);
                                                         $zip1->close();
+
+                                                        // Restore database config: prefer persistent volume copy, fall back to pre-update backup
+                                                        $persistent_config = PERSISTENT_DIR . '/database.php';
+                                                        if (file_exists($persistent_config)) {
+                                                            @copy($persistent_config, $app_config_path);
+                                                        } elseif ($db_config_backup !== null) {
+                                                            @file_put_contents($app_config_path, $db_config_backup);
+                                                        }
+
+                                                        // Remove install/ directory if re-extracted by the update package
+                                                        $install_dir = FCPATH . 'install';
+                                                        if (is_dir($install_dir)) {
+                                                            $this->DeleteDir($install_dir);
+                                                        }
+
                                                         if (file_exists($sql_file)) {
                                                             $lines = file($sql_file);
                                                             for ($i = 0; $i < count($lines); $i++) {

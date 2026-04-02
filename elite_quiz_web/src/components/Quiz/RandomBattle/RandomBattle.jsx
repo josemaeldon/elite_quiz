@@ -3,7 +3,7 @@ import BattleRoomPanel from "@/components/Quiz/BattleRoom/BattleRoomPanel";
 import { withTranslation } from "react-i18next";
 import { t } from "@/utils";
 
-const RandomBattle = () => (
+const RandomBattle = ({ initialJoinCode = "" }) => (
   <BattleRoomPanel
     title={t("random_battle")}
     description={
@@ -11,6 +11,7 @@ const RandomBattle = () => (
       "Crie uma sala Postgres, junte seus amigos e troque mensagens."
     }
     mode="random"
+    initialJoinCode={initialJoinCode}
   />
 );
 

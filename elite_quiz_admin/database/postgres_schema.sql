@@ -703,9 +703,7 @@ CREATE INDEX IF NOT EXISTS idx_tbl_user_quiz_zone_session_user_id ON tbl_user_qu
 CREATE INDEX IF NOT EXISTS idx_tbl_user_true_false_session_user_id ON tbl_user_true_false_session(user_id);
 
 -- Seed data
-
-INSERT INTO tbl_authenticate (auth_id, auth_username, auth_pass, role, permissions, status, language, created) VALUES
-(1, 'admin', '$2y$10$BMrcIYxcLaikC2E7JvQ7XepMHZv76w/ZfvRNLxzhWJxNtNORjYVi.', 'admin', '', 1, 'english', '2020-11-02 10:23:24');
+-- Note: the super administrator account is created during the installation wizard.
 
 INSERT INTO tbl_badges (id, language_id, type, badge_label, badge_note, badge_reward, badge_icon, badge_counter) VALUES
 (1, 14, 'dashing_debut', 'Dashing Debut', 'Play first quiz zone game', 2, '1636692664.png', 1),
@@ -1075,7 +1073,6 @@ INSERT INTO tbl_upload_languages (id, name, title, app_version, web_version, app
 
 -- Adjust sequences after seed data
 
-SELECT setval('tbl_authenticate_auth_id_seq', 2);
 SELECT setval('tbl_badges_id_seq', 16);
 SELECT setval('tbl_coin_store_id_seq', 2);
 SELECT setval('tbl_languages_id_seq', 57);

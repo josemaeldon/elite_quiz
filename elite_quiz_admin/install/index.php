@@ -16,29 +16,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST) {
     $core = new Core();
     $database = new Database();
 
+    $admin_username   = trim($_POST['admin_username'] ?? '');
+    $admin_password   = $_POST['admin_password'] ?? '';
+    $admin_confirm    = $_POST['admin_confirm_password'] ?? '';
+
     if (!empty($_POST['hostname']) && !empty($_POST['username']) && !empty($_POST['database'])) {
-        if ($core->write_config($_POST) == false) {
-            $message = $core->show_message('error', "The database configuration file could not be written, please chmod application/config/database.php file to 755");
-        }
-        if ($database->create_tables($_POST) == false) {
-            $message = $core->show_message('error', "The database could not be created, make sure your the host, username, password, database name is correct.");
-        }
-        if ($core->checkFile() == false) {
-            $message = $core->show_message('error', "File application/config/database.php is Empty");
-        }
-        if (!isset($message)) {
-            $urlWb = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-            $urlWb = str_replace('install/index.php', '', $urlWb);
-            $urlWb = str_replace('install/', '', $urlWb);
-            $core->delete_directory('../install/');
+        if (empty($admin_username)) {
+            $message = $core->show_message('error', 'Admin username is required.');
+        } elseif (strlen($admin_username) > 12) {
+            $message = $core->show_message('error', 'Admin username must be at most 12 characters.');
+        } elseif (!preg_match('/^[a-zA-Z0-9_]+$/', $admin_username)) {
+            $message = $core->show_message('error', 'Admin username may only contain letters, numbers, and underscores.');
+        } elseif (empty($admin_password)) {
+            $message = $core->show_message('error', 'Admin password is required.');
+        } elseif (strlen($admin_password) < 6) {
+            $message = $core->show_message('error', 'Admin password must be at least 6 characters.');
+        } elseif ($admin_password !== $admin_confirm) {
+            $message = $core->show_message('error', 'Admin passwords do not match.');
+        } else {
+            if ($core->write_config($_POST) == false) {
+                $message = $core->show_message('error', "The database configuration file could not be written, please chmod application/config/database.php file to 755");
+            }
+            if ($database->create_tables($_POST) == false) {
+                $message = $core->show_message('error', "The database could not be created, make sure your the host, username, password, database name is correct.");
+            }
+            if ($core->checkFile() == false) {
+                $message = $core->show_message('error', "File application/config/database.php is Empty");
+            }
+            if (!isset($message)) {
+                $urlWb = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+                $urlWb = str_replace('install/index.php', '', $urlWb);
+                $urlWb = str_replace('install/', '', $urlWb);
+                $core->delete_directory('../install/');
 ?>
-            <script type="text/javascript">
-                $('#install_form').hide();
-            </script>
+                <script type="text/javascript">
+                    $('#install_form').hide();
+                </script>
 <?php
-            $type = 'success';
-            $message = $core->show_message('success', 'Congrats! Installation is successful. Please wait redirecting you to the main page in seconds.. .');
-            header('Refresh:5; url=' . $urlWb);
+                $type = 'success';
+                $message = $core->show_message('success', 'Congrats! Installation is successful. Please wait redirecting you to the main page in seconds.. .');
+                header('Refresh:5; url=' . $urlWb);
+            }
         }
     } else {
         $message = $core->show_message('error', 'The host, username, password, database name required.');
@@ -90,6 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST) {
                                 <ul class="list-unstyled wizard_steps">
                                     <li><a href="#step-1"><span class="step_no">1</span></a></li>
                                     <li><a href="#step-2"><span class="step_no">2</span></a></li>
+                                    <li><a href="#step-3"><span class="step_no">3</span></a></li>
                                 </ul>
 
                                 <div id="step-1">
@@ -167,6 +186,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST) {
                                     </div>
                                 </div>
 
+                                <div id="step-3">
+                                    <div class="col-md-12">
+                                        <div class="outer_div">
+                                            <div class="form-group row">
+                                                <div class="col-md-12">
+                                                    <div class="check_server_req">
+                                                        <h6>Create Super Administrator</h6>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-12">
+                                                    <label>Admin Username <small class="text-danger">*</small></label>
+                                                    <input name="admin_username" type="text" id="admin_username" class="form-control" required maxlength="12" pattern="[a-zA-Z0-9_]+" placeholder="e.g. admin" />
+                                                    <small class="text-muted">Maximum 12 characters. Letters, numbers, and underscores only.</small>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-6">
+                                                    <label>Password <small class="text-danger">*</small></label>
+                                                    <input name="admin_password" type="password" id="admin_password" class="form-control" required minlength="6" placeholder="Minimum 6 characters" />
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label>Confirm Password <small class="text-danger">*</small></label>
+                                                    <input name="admin_confirm_password" type="password" id="admin_confirm_password" class="form-control" required minlength="6" placeholder="Repeat your password" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                         </form>
                     <?php
@@ -193,6 +243,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST) {
         $(document).ready(function() {
             $("body").on("contextmenu", function(e) {
                 return false;
+            });
+
+            // Client-side password confirmation check before submit
+            $('#install_form').on('submit', function(e) {
+                var pw = $('#admin_password').val();
+                var confirm = $('#admin_confirm_password').val();
+                if (pw && confirm && pw !== confirm) {
+                    e.preventDefault();
+                    alert('Admin passwords do not match.');
+                    return false;
+                }
             });
         });
         $(document).keydown(function(e) {

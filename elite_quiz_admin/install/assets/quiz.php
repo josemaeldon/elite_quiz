@@ -89,11 +89,8 @@ CREATE TABLE `tbl_authenticate` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 --
--- Dumping data for table `tbl_authenticate`
+-- Note: the super administrator account is created during the installation wizard.
 --
-
-INSERT INTO `tbl_authenticate` (`auth_id`, `auth_username`, `auth_pass`, `role`, `permissions`, `status`, `language`, `created`) VALUES
-(1, 'admin', '$2y$10$BMrcIYxcLaikC2E7JvQ7XepMHZv76w/ZfvRNLxzhWJxNtNORjYVi.', 'admin', '', 1, 'english', '2020-11-02 10:23:24');
 
 -- --------------------------------------------------------
 
