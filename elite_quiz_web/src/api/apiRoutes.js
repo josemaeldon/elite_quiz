@@ -95,6 +95,23 @@ export const joinBattleRoomApi = async ({ room_id, user_id, role }) => {
   }
 };
 
+export const joinBattleRoomByCodeApi = async ({ room_code, user_id, role }) => {
+  try {
+    const formData = new FormData();
+    formData.append("room_code", room_code);
+    formData.append("user_id", user_id);
+    if (role) formData.append("role", role);
+    const response = await api.post(apiEndPoints.joinBattleRoomByCodeApi, formData);
+    if (response.status !== 200) {
+      throw new Error("Failed to join battle room by code");
+    }
+    return response?.data;
+  } catch (error) {
+    console.error("joinBattleRoomByCodeApi error:", error);
+    return null;
+  }
+};
+
 export const sendBattleMessage = async ({ room_id, sender_id, message, payload, is_text = true }) => {
   try {
     const formData = new FormData();

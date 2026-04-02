@@ -116,6 +116,7 @@ export const verifyTokenLocalApi = "Auth/verify_token";
 // Battle room endpoints (Postgres-backed)
 export const createBattleRoomApi = "BattleRoom/create";
 export const joinBattleRoomApi = "BattleRoom/join";
+export const joinBattleRoomByCodeApi = "BattleRoom/join_by_code";
 export const sendBattleMessageApi = "BattleRoom/messages";
 export const getBattleMessagesApi = "BattleRoom/messages";
 export const getBattleStateApi = "BattleRoom/state";

@@ -95,6 +95,55 @@ class BattleRoom extends REST_Controller
         $this->response($response, REST_Controller::HTTP_OK);
     }
 
+    public function join_by_code_post()
+    {
+        try {
+            $room_code = strtoupper(trim($this->post('room_code')));
+            $user_id = (int) $this->post('user_id');
+            $role = $this->post('role') ?: 'player';
+
+            if (!$room_code || !$user_id) {
+                return $this->response(['error' => true, 'message' => 'Missing data'], REST_Controller::HTTP_OK);
+            }
+
+            $room = $this->db->where('room_code', $room_code)->get('battle_rooms')->row_array();
+            if (empty($room)) {
+                return $this->response(['error' => true, 'message' => 'Room not found'], REST_Controller::HTTP_OK);
+            }
+
+            $room_id = $room['id'];
+
+            $existing = $this->db->where('room_id', $room_id)->where('user_id', $user_id)->get('battle_room_participants')->row_array();
+            if (empty($existing)) {
+                $participant = [
+                    'room_id' => $room_id,
+                    'user_id' => $user_id,
+                    'role' => $role,
+                    'joined_at' => date('Y-m-d H:i:s'),
+                ];
+                $this->db->insert('battle_room_participants', $participant);
+                $this->pushRoomEvent($room_id, 'participant_joined', array_merge($participant, $this->getUserInfo($user_id)));
+            }
+
+            $participants = $this->db->select('brp.*, u.name, u.profile')->from('battle_room_participants brp')
+                ->join('tbl_users u', 'u.id = brp.user_id', 'left')
+                ->where('room_id', $room_id)
+                ->get()->result_array();
+
+            $this->response([
+                'error' => false,
+                'data' => [
+                    'room_id' => $room_id,
+                    'room_code' => $room['room_code'],
+                    'status' => $room['status'],
+                ],
+                'participants' => $participants,
+            ], REST_Controller::HTTP_OK);
+        } catch (Exception $e) {
+            $this->response(['error' => true, 'message' => 'Join failed', 'error_msg' => $e->getMessage()], REST_Controller::HTTP_OK);
+        }
+    }
+
     public function join_post()
     {
         try {

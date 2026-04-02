@@ -158,7 +158,7 @@ class Question_model extends CI_Model
         $c = ($question_type == 1) ? $this->input->post('c') : "";
         $d = ($question_type == 1) ? $this->input->post('d') : "";
         $e = ($this->input->post('e')) ? $this->input->post('e') : "";
-        $level = $this->input->post('level') ?? 0;
+        $level = ($this->input->post('level') !== '' && $this->input->post('level') !== false) ? (int) $this->input->post('level') : 0;
         $answer = $this->input->post('answer');
         $note = $this->input->post('note');
 
@@ -219,7 +219,7 @@ class Question_model extends CI_Model
         $c = ($question_type == 1) ? $this->input->post('c') : "";
         $d = ($question_type == 1) ? $this->input->post('d') : "";
         $e = ($this->input->post('e')) ? $this->input->post('e') : "";
-        $level = $this->input->post('level') ?? 0;
+        $level = ($this->input->post('level') !== '' && $this->input->post('level') !== false) ? (int) $this->input->post('level') : 0;
         $answer = $this->input->post('answer');
         $note = $this->input->post('note');
 
