@@ -3,11 +3,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { t } from "@/utils";
 import { useSelector } from "react-redux";
+import { QRCodeSVG } from "qrcode.react";
 import {
   createBattleRoomApi,
   getBattleMessages,
   getBattleState,
   joinBattleRoomApi,
+  joinBattleRoomByCodeApi,
   sendBattleMessage,
 } from "@/api/apiRoutes";
 
@@ -30,6 +32,7 @@ const BattleRoomPanel = ({
   defaultCategory = 1,
   maxPlayers = 4,
   mode = "",
+  initialJoinCode = "",
 }) => {
   const user = useSelector((state) => state.User?.data);
   const isLoggedIn = useSelector((state) => state.User?.isLogin);
@@ -41,6 +44,8 @@ const BattleRoomPanel = ({
   const [payload, setPayload] = useState("");
   const [error, setError] = useState(null);
   const [categoryId, setCategoryId] = useState(defaultCategory);
+  const [joinCode, setJoinCode] = useState(initialJoinCode);
+  const [copied, setCopied] = useState(false);
   const eventSourceRef = useRef(null);
   const messageIdsRef = useRef(new Set());
 
@@ -211,6 +216,33 @@ const BattleRoomPanel = ({
     }
   };
 
+  const handleJoinByCode = async () => {
+    if (!joinCode.trim() || !isLoggedIn) return;
+    setPending(true);
+    setError(null);
+    const response = await joinBattleRoomByCodeApi({
+      room_code: joinCode.trim().toUpperCase(),
+      user_id: user?.id,
+    });
+    setPending(false);
+    if (!response || response?.error) {
+      setError(response?.message || t("cannot_join_with_this_room_code"));
+      return;
+    }
+    resetRoom();
+    setRoom(response?.data ?? null);
+    setParticipants(response?.participants ?? []);
+    setJoinCode("");
+  };
+
+  const handleCopyCode = () => {
+    if (!room?.room_code) return;
+    navigator.clipboard.writeText(room.room_code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   const handleSend = async () => {
     if (!roomId || !payload.trim()) return;
     setPending(true);
@@ -268,7 +300,26 @@ const BattleRoomPanel = ({
             )}
           </div>
         </header>
+
+        {/* Join by room code */}
+        {!room && (
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <input
+              type="text"
+              className="flex-1 sm:max-w-xs px-3 py-2 border rounded uppercase tracking-widest"
+              value={joinCode}
+              onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
+              placeholder={t("enter_room_code_here") || "Enter room code here"}
+              maxLength={8}
+            />
+            <Button variant="outline" onClick={handleJoinByCode} loading={pending}>
+              {t("join_by_code") || "Join by Code"}
+            </Button>
+          </div>
+        )}
+
         {error && <div className="text-red-600 text-sm mt-3">{error}</div>}
+
         {room && (
           <div className="mt-6 grid gap-6 md:grid-cols-2">
             <section>
@@ -279,12 +330,50 @@ const BattleRoomPanel = ({
                 <strong>{t("room_id")}:</strong> {room.room_id}
               </p>
               <p>
-                <strong>{t("room_code")}:</strong> {room.room_code}
-              </p>
-              <p>
                 <strong>{t("status")}:</strong> {room.status}
               </p>
+
+              {/* Room code with copy button */}
+              {room.room_code && (
+                <div className="mt-4">
+                  <p className="text-sm font-semibold mb-1">
+                    {t("room_code") || "Room Code"}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-mono font-bold tracking-widest border rounded px-3 py-1 bg-gray-50">
+                      {room.room_code}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleCopyCode}
+                      className="text-xs px-3 py-1 border rounded hover:bg-gray-100 transition-colors"
+                    >
+                      {copied ? (t("copied") || "Copied!") : (t("copy_code") || "Copy Code")}
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted mt-1">
+                    {t("share_room_code") || "Share Room Code"}
+                  </p>
+                </div>
+              )}
+
+              {/* QR code */}
+              {room.room_code && (
+                <div className="mt-4">
+                  <p className="text-sm font-semibold mb-2">
+                    {t("scan_qr_to_join") || "Scan QR code to join"}
+                  </p>
+                  <QRCodeSVG
+                    value={`${typeof window !== "undefined" ? window.location.origin : ""}/random-battle?join=${room.room_code}`}
+                    size={160}
+                    bgColor="#ffffff"
+                    fgColor="#000000"
+                    level="M"
+                  />
+                </div>
+              )}
             </section>
+
             <section>
               <h3 className="font-semibold text-sm uppercase text-muted">
                 {t("participants")}
@@ -308,6 +397,7 @@ const BattleRoomPanel = ({
             </section>
           </div>
         )}
+
         {roomId && (
           <div className="mt-6">
             <h3 className="font-semibold text-sm uppercase text-muted">{t("chat")}</h3>
